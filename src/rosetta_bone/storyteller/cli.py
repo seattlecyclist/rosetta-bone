@@ -70,3 +70,20 @@ def chunk_cmd(
             pillar=p,
             out_path=cfg.paths.chunks_dir / f"{p.value}.jsonl",
         )
+
+
+@app.command("embed")
+def embed_cmd(
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    """Build FAISS indexes for all pillars."""
+    from rosetta_bone.storyteller.retrieval.embed import Embedder
+    from rosetta_bone.storyteller.retrieval.select import build_indexes
+
+    cfg = load_config(config_path)
+    embedder = Embedder(cfg.retrieval.embedding_model)
+    build_indexes(
+        embedder,
+        chunks_dir=cfg.paths.chunks_dir,
+        embeddings_dir=cfg.paths.embeddings_dir,
+    )
