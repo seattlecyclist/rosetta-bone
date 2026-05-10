@@ -215,3 +215,21 @@ def train_cmd(
         typer.echo(res.stderr, err=True)
         raise typer.Exit(code=res.returncode)
     typer.echo("Training complete.")
+
+
+@app.command("generate")
+def generate_cmd(
+    stimulus: str = typer.Argument(..., help="The stimulus prompt, e.g., 'a trip to the vet'"),
+    form: str = typer.Option("diary", help="diary | vignette | short_story"),
+    max_tokens: int | None = typer.Option(None),
+    temperature: float | None = typer.Option(None),
+    top_p: float | None = typer.Option(None),
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    from rosetta_bone.storyteller.infer.generate import generate
+
+    text = generate(
+        stimulus, form=form, max_tokens=max_tokens,
+        temperature=temperature, top_p=top_p, config_path=config_path,
+    )
+    typer.echo(text)
