@@ -1,0 +1,32 @@
+[paths]
+data_dir = "data"
+raw_dir = "data/raw"
+chunks_dir = "data/chunks"
+embeddings_dir = "data/embeddings"
+sft_dir = "data/sft"
+adapter_dir = "data/adapters/llama31-8b-storyteller-v1"
+
+[retrieval]
+embedding_model = "BAAI/bge-small-en-v1.5"
+similarity_threshold = 0.25
+
+[sft]
+model = "claude-sonnet-4-6"
+max_requests_per_run = 1000
+requests_per_minute = 50
+batch_size_max = 10000
+
+[train]
+base_model = "mlx-community/Meta-Llama-3.1-8B-Instruct-4bit"
+rank = 8
+alpha = 16.0
+iters = 1000
+batch_size = 4
+learning_rate = 1e-5
+target_modules = ["q_proj", "v_proj"]
+
+[infer]
+temperature = 0.85
+top_p = 0.95
+max_tokens = 600
+repetition_penalty = 1.05
