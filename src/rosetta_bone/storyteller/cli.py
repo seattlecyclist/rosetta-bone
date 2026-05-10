@@ -192,3 +192,26 @@ def sft_merge(
         valid_fraction=valid_fraction,
     )
     typer.echo(f"Kept {stats.kept}, deduped {stats.deduped}, dropped {stats.dropped_invalid}.")
+
+
+@app.command("train")
+def train_cmd(
+    iters: int = typer.Option(1000, help="Training iterations"),
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    from rosetta_bone.storyteller.train.lora import train
+
+    cfg = load_config(config_path)
+    res = train(
+        base_model=cfg.train.base_model,
+        train_data=cfg.paths.sft_dir / "train.jsonl",
+        valid_data=cfg.paths.sft_dir / "valid.jsonl",
+        adapter_dir=cfg.paths.adapter_dir,
+        rank=cfg.train.rank, alpha=cfg.train.alpha,
+        iters=iters, batch_size=cfg.train.batch_size,
+        learning_rate=cfg.train.learning_rate,
+    )
+    if res.returncode != 0:
+        typer.echo(res.stderr, err=True)
+        raise typer.Exit(code=res.returncode)
+    typer.echo("Training complete.")
