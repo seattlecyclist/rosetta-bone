@@ -87,3 +87,108 @@ def embed_cmd(
         chunks_dir=cfg.paths.chunks_dir,
         embeddings_dir=cfg.paths.embeddings_dir,
     )
+
+
+sft_app = typer.Typer(help="SFT-pair generation pipeline", no_args_is_help=True)
+app.add_typer(sft_app, name="sft")
+
+
+@sft_app.command("generate")
+def sft_generate(
+    count: int = typer.Option(..., help="Total SFT pairs to generate"),
+    phase: str = typer.Option("pilot", help="Phase tag: pilot | full"),
+    max_requests: int | None = typer.Option(None, "--max-requests"),
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    from itertools import islice
+    import os
+
+    from anthropic import Anthropic
+    from dotenv import load_dotenv
+
+    from rosetta_bone.storyteller.retrieval.embed import Embedder
+    from rosetta_bone.storyteller.retrieval.select import (
+        build_indexes,
+        select_chunks,
+    )
+    from rosetta_bone.storyteller.sft.generate import (
+        enforce_request_cap,
+        plan_batch,
+        submit_batch,
+    )
+    from rosetta_bone.storyteller.sft.stimuli import expand, load_stimuli
+
+    load_dotenv()
+    cfg = load_config(config_path)
+    cap = max_requests if max_requests is not None else cfg.sft.max_requests_per_run
+    try:
+        enforce_request_cap(count=count, cap=cap)
+    except ValueError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(1)
+
+    stimuli = load_stimuli(Path("config/stimuli.yaml"))
+    triples = list(islice(expand(stimuli), count))
+
+    embedder = Embedder(cfg.retrieval.embedding_model)
+    indexes = build_indexes(
+        embedder,
+        chunks_dir=cfg.paths.chunks_dir,
+        embeddings_dir=cfg.paths.embeddings_dir,
+    )
+
+    def selector(stim: str):
+        return select_chunks(
+            stim, indexes, embedder,
+            similarity_threshold=cfg.retrieval.similarity_threshold,
+        )
+
+    plan = plan_batch(triples, select_fn=selector, model=cfg.sft.model, phase=phase)
+    api_key = os.environ["ANTHROPIC_API_KEY"]
+    client = Anthropic(api_key=api_key)
+    bid = submit_batch(plan, client=client,
+                       manifest_path=cfg.paths.sft_dir / "manifest.jsonl")
+    typer.echo(f"Submitted batch {bid} with {len(plan.requests)} requests.")
+
+
+@sft_app.command("poll")
+def sft_poll(
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    import os
+
+    from anthropic import Anthropic
+    from dotenv import load_dotenv
+
+    from rosetta_bone.storyteller.sft.poll import poll_once
+
+    load_dotenv()
+    cfg = load_config(config_path)
+    client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    pending = poll_once(
+        client=client,
+        manifest_path=cfg.paths.sft_dir / "manifest.jsonl",
+        out_dir=cfg.paths.sft_dir / "batches",
+    )
+    if pending:
+        typer.echo(f"{len(pending)} batch(es) still in progress: " +
+                   ", ".join(f"{b.batch_id}={b.status}" for b in pending))
+    else:
+        typer.echo("All batches downloaded.")
+
+
+@sft_app.command("merge")
+def sft_merge(
+    valid_fraction: float = typer.Option(0.1),
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    from rosetta_bone.storyteller.sft.merge import merge
+
+    cfg = load_config(config_path)
+    stats = merge(
+        batches_dir=cfg.paths.sft_dir / "batches",
+        train_path=cfg.paths.sft_dir / "train.jsonl",
+        valid_path=cfg.paths.sft_dir / "valid.jsonl",
+        valid_fraction=valid_fraction,
+    )
+    typer.echo(f"Kept {stats.kept}, deduped {stats.deduped}, dropped {stats.dropped_invalid}.")
