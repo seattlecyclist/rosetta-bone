@@ -18,6 +18,7 @@ from pathlib import Path
 
 from rosetta_bone.common.jsonl import iter_jsonl, write_all
 from rosetta_bone.common.logging import get_logger
+from rosetta_bone.storyteller.sft.cost import Usage, sum_usage
 
 _log = get_logger(__name__)
 
@@ -76,11 +77,14 @@ def merge(
     pairs: dict[str, dict] = {}
     dropped = 0
     deduped = 0
+    usages: list[Usage] = []
     for batch_file in sorted(batches_dir.glob("*.jsonl")):
         for row in iter_jsonl(batch_file):
             if row.get("type") != "succeeded":
                 dropped += 1
                 continue
+            if "usage" in row:
+                usages.append(Usage(**row["usage"]))
             parsed = parse_assistant_json(row.get("text", ""))
             if parsed is None:
                 dropped += 1
@@ -108,6 +112,14 @@ def merge(
     write_all(valid_path, [to_chat(p) for p in valid_rows])
 
     stats = MergeStats(kept=len(rows), deduped=deduped, dropped_invalid=dropped)
-    _log.info("merge_done", **stats.__dict__,
-              n_train=len(train_rows), n_valid=len(valid_rows))
+    totals = sum_usage(usages) if usages else None
+    _log.info(
+        "merge_done",
+        **stats.__dict__,
+        n_train=len(train_rows),
+        n_valid=len(valid_rows),
+        total_input_tokens=totals.input_tokens if totals else 0,
+        total_output_tokens=totals.output_tokens if totals else 0,
+        total_cache_read_input_tokens=totals.cache_read_input_tokens if totals else 0,
+    )
     return stats
