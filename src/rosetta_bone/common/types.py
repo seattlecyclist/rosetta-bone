@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
 
 
-class Pillar(str, Enum):
+class Pillar(StrEnum):
     SCIENCE = "science"
     STYLE = "style"
     BEHAVIOR = "behavior"

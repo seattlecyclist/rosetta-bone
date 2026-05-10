@@ -28,7 +28,7 @@ def extract_text_rows(
         t = (r.get(text_field) or "").strip()
         if not t:
             continue
-        rid = r.get("id", out and out[-1]["metadata"].get("id", 0) + 1 or 0)
+        rid = r.get("id", (out and out[-1]["metadata"].get("id", 0) + 1) or 0)
         meta = {k: v for k, v in r.items() if k != text_field}
         out.append({
             "source": f"{_DATASET}:{rid}",

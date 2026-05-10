@@ -1,6 +1,5 @@
 import io
 
-
 from rosetta_bone.common.pdf import pdf_to_text
 
 

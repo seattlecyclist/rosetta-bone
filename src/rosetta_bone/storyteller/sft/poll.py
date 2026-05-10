@@ -53,8 +53,12 @@ def poll_once(
                 row["usage"] = {
                     "input_tokens": u.input_tokens,
                     "output_tokens": u.output_tokens,
-                    "cache_read_input_tokens": getattr(u, "cache_read_input_tokens", 0) or 0,
-                    "cache_creation_input_tokens": getattr(u, "cache_creation_input_tokens", 0) or 0,
+                    "cache_read_input_tokens": (
+                        getattr(u, "cache_read_input_tokens", 0) or 0
+                    ),
+                    "cache_creation_input_tokens": (
+                        getattr(u, "cache_creation_input_tokens", 0) or 0
+                    ),
                 }
             else:
                 row["error"] = json.dumps(getattr(r.result, "error", "unknown"), default=str)

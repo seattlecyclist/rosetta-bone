@@ -100,8 +100,8 @@ def sft_generate(
     max_requests: int | None = typer.Option(None, "--max-requests"),
     config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
 ) -> None:
-    from itertools import islice
     import os
+    from itertools import islice
 
     from anthropic import Anthropic
     from dotenv import load_dotenv
@@ -125,7 +125,7 @@ def sft_generate(
         enforce_request_cap(count=count, cap=cap)
     except ValueError as exc:
         typer.echo(str(exc))
-        raise typer.Exit(1)
+        raise typer.Exit(1) from exc
 
     stimuli = load_stimuli(Path("config/stimuli.yaml"))
     triples = list(islice(expand(stimuli), count))
