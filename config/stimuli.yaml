@@ -1,0 +1,24 @@
+# Curated dog-life stimuli for SFT generation.
+# `prompt`: the user-visible stimulus
+# `variations`: how many SFT pairs to generate for this stimulus
+# `form`: one of diary | vignette | short_story (informs length & framing)
+- {prompt: "the mailman arriving",                  variations: 8, form: diary}
+- {prompt: "a trip to the vet",                     variations: 8, form: vignette}
+- {prompt: "owner returning home from work",        variations: 6, form: diary}
+- {prompt: "dinner being prepared in the kitchen",  variations: 6, form: vignette}
+- {prompt: "a thunderstorm at 3am",                 variations: 5, form: short_story}
+- {prompt: "meeting another dog at the park",       variations: 6, form: vignette}
+- {prompt: "the vacuum cleaner being used",         variations: 4, form: vignette}
+- {prompt: "a long car ride",                       variations: 5, form: diary}
+- {prompt: "a bath being run",                      variations: 4, form: vignette}
+- {prompt: "first snow on the back yard",           variations: 4, form: short_story}
+- {prompt: "a squirrel on the fence",               variations: 5, form: vignette}
+- {prompt: "the doorbell ringing",                  variations: 4, form: vignette}
+- {prompt: "owner crying on the couch",             variations: 3, form: diary}
+- {prompt: "a new baby in the house",               variations: 4, form: short_story}
+- {prompt: "moving to a new home",                  variations: 3, form: short_story}
+- {prompt: "fireworks on a summer night",           variations: 3, form: vignette}
+- {prompt: "the sound of car keys",                 variations: 4, form: diary}
+- {prompt: "lying in a sunbeam",                    variations: 4, form: vignette}
+- {prompt: "a cat trespassing in the garden",       variations: 4, form: short_story}
+- {prompt: "owner returning from a long trip",      variations: 4, form: diary}
