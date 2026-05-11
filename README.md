@@ -124,45 +124,72 @@ text = generate("a trip to the vet", form="diary", max_tokens=600)
 
 ## Quickstart
 
+Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/). On macOS:
+
+```sh
+brew install python@3.12 uv
+```
+
+Then in the repo:
+
 ```sh
 uv sync
 cp .env.example .env && $EDITOR .env   # add ANTHROPIC_API_KEY
 
-rosetta-storyteller ingest --pillar style --limit 3
-rosetta-storyteller ingest --pillar science --limit 5
-rosetta-storyteller ingest --pillar behavior --limit 50
-rosetta-storyteller chunk --all
-rosetta-storyteller embed
+uv run rosetta-storyteller ingest --pillar style --limit 3
+uv run rosetta-storyteller ingest --pillar science --limit 5
+uv run rosetta-storyteller ingest --pillar behavior --limit 50
+uv run rosetta-storyteller chunk --all
+uv run rosetta-storyteller embed
 
-rosetta-storyteller sft generate --count 10 --phase pilot
-rosetta-storyteller sft poll
-rosetta-storyteller sft merge
+uv run rosetta-storyteller sft generate --count 10 --phase pilot
+uv run rosetta-storyteller sft poll       # repeat until "All batches downloaded."
+uv run rosetta-storyteller sft merge
 
-rosetta-storyteller train --iters 200
-rosetta-storyteller generate "a trip to the vet"
+uv run rosetta-storyteller train --iters 200
+uv run rosetta-storyteller generate "a trip to the vet"
 ```
+
+`uv run` runs the command inside the project's venv. Alternatively
+`source .venv/bin/activate` once per shell session and drop the `uv run`
+prefix.
 
 See [docs/superpowers/specs/](docs/superpowers/specs/) for the v1 design and
 [docs/superpowers/plans/](docs/superpowers/plans/) for the implementation plan.
+
+## Verbose / debugging output
+
+By default the CLI is quiet — only Rosetta Bone's own structured events
+plus genuine warnings are printed. Chatty third-party loggers (httpx,
+huggingface_hub, sentence_transformers, transformers, urllib3,
+datasets) are suppressed at INFO level.
+
+To see everything (HTTP requests, download progress, library warnings)
+pass `-v` / `--verbose` before the subcommand:
+
+```sh
+uv run rosetta-storyteller -v ingest --pillar science --limit 5
+```
 
 ## Iterating: pilot → full
 
 The 1000-request cap is the safety net. Recommended workflow:
 
-1. **Pilot:** `rosetta-storyteller sft generate --count 500 --phase pilot`
+1. **Pilot:** `uv run rosetta-storyteller sft generate --count 500 --phase pilot`
 2. Inspect `data/sft/train.jsonl` by hand. Confirm sensory grounding,
-   look for canned phrases, check `cache_read_input_tokens > 0` in the
-   manifest entry (if not, prompt caching is broken).
+   look for canned phrases, check `cache_read_input_tokens > 0` in
+   `data/sft/manifest.jsonl` (if it's `0`, prompt caching is broken
+   and you're not getting the 50% batch + cache discount).
 3. Iterate `config/stimuli.yaml` and the persona text.
-4. **Full:** `rosetta-storyteller sft generate --count 10000 --phase full --max-requests 10000`
+4. **Full:** `uv run rosetta-storyteller sft generate --count 10000 --phase full --max-requests 10000`
 
 Cost estimate: pilot ≈ $3-5, full ≈ $20-60 (Sonnet 4.6 batch pricing).
 
 ## Tests
 
 ```sh
-# Unit tests (fast)
-uv run pytest tests/unit -v
+# Unit tests (fast — 60 tests, ~8s, no network)
+uv run pytest tests/unit -q
 
 # Integration smoke test (slow, costs ~$0.10, downloads model weights)
 ANTHROPIC_API_KEY=... uv run pytest tests/integration -m slow -v
