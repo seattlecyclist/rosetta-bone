@@ -24,7 +24,15 @@ def generate(
     top_p: float | None = None,
     config_path: Path = Path("config/default.toml"),
 ) -> str:
+    """Run inference against the fine-tuned model.
+
+    mlx-lm's sampling API moved away from raw temp=/top_p=/
+    repetition_penalty= kwargs in recent releases. Sampling is now
+    configured via `sampler` (a callable built by make_sampler) and
+    `logits_processors` (built by make_logits_processors).
+    """
     from mlx_lm import generate as mlx_generate
+    from mlx_lm.sample_utils import make_logits_processors, make_sampler
 
     cfg = load_config(config_path)
     model, tokenizer = load(cfg.train.base_model, cfg.paths.adapter_dir)
@@ -33,12 +41,18 @@ def generate(
         add_generation_prompt=True,
         tokenize=False,
     )
+    sampler = make_sampler(
+        temp=temperature if temperature is not None else cfg.infer.temperature,
+        top_p=top_p if top_p is not None else cfg.infer.top_p,
+    )
+    logits_processors = make_logits_processors(
+        repetition_penalty=cfg.infer.repetition_penalty,
+    )
     return mlx_generate(
         model, tokenizer,
         prompt=prompt,
         max_tokens=max_tokens or cfg.infer.max_tokens,
-        temp=temperature or cfg.infer.temperature,
-        top_p=top_p or cfg.infer.top_p,
-        repetition_penalty=cfg.infer.repetition_penalty,
+        sampler=sampler,
+        logits_processors=logits_processors,
         verbose=False,
     )
