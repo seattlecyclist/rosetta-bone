@@ -31,3 +31,6 @@ data/
 # Hugging Face / mlx caches (default off-tree but be explicit)
 .cache/
 *.safetensors
+
+# Claude Code internal worktrees
+.claude/
