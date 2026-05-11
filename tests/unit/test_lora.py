@@ -22,6 +22,8 @@ def test_build_train_argv_includes_required_flags(tmp_path: Path):
     # mlx-lm has no --lora-layers flag; passing it would error with
     # "unrecognized arguments". Guard against accidental re-addition.
     assert "--lora-layers" not in argv
+    # --grad-checkpoint is required to fit 8B-4bit + LoRA in 32 GB.
+    assert "--grad-checkpoint" in argv
 
 
 def test_train_invokes_subprocess_run(tmp_path: Path):

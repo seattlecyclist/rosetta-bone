@@ -33,6 +33,11 @@ def build_train_argv(
         "--batch-size", str(batch_size),
         "--learning-rate", str(learning_rate),
         "--num-layers", "16",
+        # Recompute activations during backward instead of caching them.
+        # Roughly halves peak GPU memory at a moderate (~15-25 %) speed
+        # cost. Required for Llama-3.1-8B-4bit + LoRA to fit on 32 GB
+        # unified-memory Apple Silicon without OOM.
+        "--grad-checkpoint",
     ]
 
 
