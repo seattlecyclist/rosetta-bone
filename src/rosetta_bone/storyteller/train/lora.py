@@ -74,4 +74,8 @@ def train(
         rank=rank, alpha=alpha, iters=iters, batch_size=batch_size,
         learning_rate=learning_rate,
     )
-    return subprocess.run(argv, check=False, capture_output=True, text=True)
+    # Inherit stdout/stderr from the parent process so mlx-lm's per-iter
+    # progress + tqdm bars stream to the terminal in real time. Capturing
+    # output would buffer everything until the subprocess exits, making
+    # a 10-minute training run indistinguishable from a hang.
+    return subprocess.run(argv, check=False, text=True)

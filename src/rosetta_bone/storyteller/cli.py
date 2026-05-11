@@ -253,7 +253,7 @@ def train_cmd(
     duration_s = time.monotonic() - started
 
     if res.returncode != 0:
-        typer.echo(res.stderr, err=True)
+        # mlx-lm's own stderr already streamed live; nothing more to print.
         raise typer.Exit(code=res.returncode)
 
     # Sidecar metadata so a future operator can answer "what data and
