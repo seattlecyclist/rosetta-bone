@@ -26,9 +26,16 @@ _log = get_logger(__name__)
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
 
+# Anthropic Batches require custom_id to match ^[a-zA-Z0-9_-]{1,64}$ —
+# no colons, no other punctuation. Slug separator is `__`, slugs are
+# clamped so phase + slug + variation fit comfortably under 64 chars.
+_CUSTOM_ID_SEP = "__"
+_SLUG_MAX_LEN = 40
+
 
 def _slug(s: str) -> str:
-    return _SLUG_RE.sub("-", s.lower()).strip("-")
+    cleaned = _SLUG_RE.sub("-", s.lower()).strip("-")
+    return cleaned[:_SLUG_MAX_LEN].rstrip("-")
 
 
 @dataclass(frozen=True)
@@ -67,7 +74,7 @@ def plan_batch(
         chunks = cache[stimulus]
         msgs = build_messages(chunks, stimulus=stimulus, form=form, variation=variation)
         requests.append(BatchRequest(
-            custom_id=f"{phase}::{_slug(stimulus)}::{variation}",
+            custom_id=f"{phase}{_CUSTOM_ID_SEP}{_slug(stimulus)}{_CUSTOM_ID_SEP}{variation}",
             messages=msgs,
         ))
     return BatchPlan(requests=requests, model=model, phase=phase)

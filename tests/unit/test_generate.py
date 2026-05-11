@@ -41,9 +41,13 @@ def test_plan_batch_builds_one_request_per_pair():
     plan = plan_batch(triples, select_fn=fake_select, model="claude-sonnet-4-6", phase="pilot")
     assert isinstance(plan, BatchPlan)
     assert len(plan.requests) == 3
-    assert plan.requests[0].custom_id == "pilot::vet-visit::0"
-    assert plan.requests[1].custom_id == "pilot::vet-visit::1"
-    assert plan.requests[2].custom_id == "pilot::mailman::0"
+    assert plan.requests[0].custom_id == "pilot__vet-visit__0"
+    assert plan.requests[1].custom_id == "pilot__vet-visit__1"
+    assert plan.requests[2].custom_id == "pilot__mailman__0"
+    # Anthropic requires custom_id ~ /^[a-zA-Z0-9_-]{1,64}$/
+    import re
+    for r in plan.requests:
+        assert re.fullmatch(r"[a-zA-Z0-9_-]{1,64}", r.custom_id)
     # Per-stimulus retrieval cache: only 2 distinct stimuli, so 2 select calls
     assert len(select_calls) == 2
 
