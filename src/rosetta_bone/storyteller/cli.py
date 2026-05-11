@@ -197,18 +197,44 @@ def sft_merge(
 @app.command("train")
 def train_cmd(
     iters: int = typer.Option(1000, help="Training iterations"),
+    batch_size: int | None = typer.Option(
+        None, "--batch-size",
+        help="Override config batch_size. If unset, uses config and auto-clamps "
+             "to the train-set size for small pilots.",
+    ),
     config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
 ) -> None:
+    from rosetta_bone.common.jsonl import iter_jsonl
     from rosetta_bone.storyteller.train.lora import train
 
     cfg = load_config(config_path)
+    train_path = cfg.paths.sft_dir / "train.jsonl"
+
+    # mlx-lm requires batch_size <= n_train_rows. For small pilots
+    # (10-50 SFT pairs), the default batch_size of 4 from default.toml
+    # may exceed the merged train set. Auto-clamp with a warning.
+    requested = batch_size if batch_size is not None else cfg.train.batch_size
+    n_train = sum(1 for _ in iter_jsonl(train_path))
+    if n_train == 0:
+        typer.echo(
+            f"No training data at {train_path}. Did sft merge run?",
+            err=True,
+        )
+        raise typer.Exit(code=2)
+    effective = min(requested, n_train)
+    if effective < requested:
+        typer.echo(
+            f"Clamped batch_size {requested} -> {effective} "
+            f"(train.jsonl has only {n_train} rows).",
+        )
+
     res = train(
         base_model=cfg.train.base_model,
-        train_data=cfg.paths.sft_dir / "train.jsonl",
+        train_data=train_path,
         valid_data=cfg.paths.sft_dir / "valid.jsonl",
         adapter_dir=cfg.paths.adapter_dir,
         rank=cfg.train.rank, alpha=cfg.train.alpha,
-        iters=iters, batch_size=cfg.train.batch_size,
+        iters=iters, batch_size=effective,
         learning_rate=cfg.train.learning_rate,
     )
     if res.returncode != 0:
