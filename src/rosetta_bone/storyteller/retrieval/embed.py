@@ -11,7 +11,11 @@ class Embedder:
     def __init__(self, model_name: str) -> None:
         from sentence_transformers import SentenceTransformer
         self._model = SentenceTransformer(model_name)
-        self.dim = self._model.get_sentence_embedding_dimension()
+        # sentence-transformers >=3 renamed the method; fall back for older.
+        get_dim = getattr(
+            self._model, "get_embedding_dimension", None,
+        ) or self._model.get_sentence_embedding_dimension
+        self.dim = get_dim()
 
     def embed(self, texts: Sequence[str]) -> np.ndarray:
         vecs = self._model.encode(
