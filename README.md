@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/rosetta-bone-hero.png" alt="Rosetta Bone — The LLM that thinks it's a Good Boy!" width="700">
+</p>
+
 # Rosetta Bone
 
 An umbrella repo for niche dog-domain LLMs trained via the
