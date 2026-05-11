@@ -32,11 +32,18 @@ def build_train_argv(
         "--iters", str(iters),
         "--batch-size", str(batch_size),
         "--learning-rate", str(learning_rate),
-        "--num-layers", "16",
+        # LoRA on the top 8 transformer blocks. Standard for stylistic
+        # fine-tunes; halves trainable-parameter count vs 16 and roughly
+        # halves the backward-pass work.
+        "--num-layers", "8",
+        # Cap sequence length. Our SFT pairs are first-person dog stories
+        # of ~300-800 tokens; mlx-lm's default of 2048 wastes memory on
+        # right-padding and dominates per-iter latency on 8B-4bit.
+        "--max-seq-length", "1024",
         # Recompute activations during backward instead of caching them.
-        # Roughly halves peak GPU memory at a moderate (~15-25 %) speed
-        # cost. Required for Llama-3.1-8B-4bit + LoRA to fit on 32 GB
-        # unified-memory Apple Silicon without OOM.
+        # The smaller --num-layers and --max-seq-length above limit how
+        # much extra wall-time this costs us, but we keep it on as the
+        # safety net that prevents OOM on 32 GB unified memory.
         "--grad-checkpoint",
     ]
 
