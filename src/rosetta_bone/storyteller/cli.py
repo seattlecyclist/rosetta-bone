@@ -204,6 +204,11 @@ def train_cmd(
     ),
     config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
 ) -> None:
+    import hashlib
+    import json
+    import time
+    from datetime import UTC, datetime
+
     from rosetta_bone.common.jsonl import iter_jsonl
     from rosetta_bone.storyteller.train.lora import train
 
@@ -211,23 +216,14 @@ def train_cmd(
     train_path = cfg.paths.sft_dir / "train.jsonl"
     valid_path = cfg.paths.sft_dir / "valid.jsonl"
 
-    # mlx-lm requires batch_size <= len(train_set) AND batch_size <=
-    # len(valid_set) (the trainer runs an initial eval before iter 0).
-    # For small pilots, default batch_size=4 fails on the valid set.
     requested = batch_size if batch_size is not None else cfg.train.batch_size
     n_train = sum(1 for _ in iter_jsonl(train_path))
     n_valid = sum(1 for _ in iter_jsonl(valid_path))
     if n_train == 0:
-        typer.echo(
-            f"No training data at {train_path}. Did sft merge run?",
-            err=True,
-        )
+        typer.echo(f"No training data at {train_path}. Did sft merge run?", err=True)
         raise typer.Exit(code=2)
     if n_valid == 0:
-        typer.echo(
-            f"No validation data at {valid_path}. Did sft merge run?",
-            err=True,
-        )
+        typer.echo(f"No validation data at {valid_path}. Did sft merge run?", err=True)
         raise typer.Exit(code=2)
     effective = min(requested, n_train, n_valid)
     if effective < requested:
@@ -236,19 +232,74 @@ def train_cmd(
             f"(train.jsonl has {n_train} rows, valid.jsonl has {n_valid}).",
         )
 
+    # Versioned adapter directory: data/adapters/.../{timestamp}/ plus a
+    # 'latest' symlink that inference reads through. Each train run
+    # leaves the previous run intact for comparison and rollback.
+    adapter_root = cfg.paths.adapter_dir
+    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    versioned_dir = adapter_root / timestamp
+    adapter_root.mkdir(parents=True, exist_ok=True)
+
+    started = time.monotonic()
     res = train(
         base_model=cfg.train.base_model,
         train_data=train_path,
-        valid_data=cfg.paths.sft_dir / "valid.jsonl",
-        adapter_dir=cfg.paths.adapter_dir,
+        valid_data=valid_path,
+        adapter_dir=versioned_dir,
         rank=cfg.train.rank, alpha=cfg.train.alpha,
         iters=iters, batch_size=effective,
         learning_rate=cfg.train.learning_rate,
     )
+    duration_s = time.monotonic() - started
+
     if res.returncode != 0:
         typer.echo(res.stderr, err=True)
         raise typer.Exit(code=res.returncode)
-    typer.echo("Training complete.")
+
+    # Sidecar metadata so a future operator can answer "what data and
+    # hyperparams produced this adapter?" without grepping shell history.
+    def _sha1(p: Path) -> str:
+        h = hashlib.sha1()
+        with p.open("rb") as f:
+            for buf in iter(lambda: f.read(65536), b""):
+                h.update(buf)
+        return h.hexdigest()
+
+    try:
+        import mlx_lm
+        mlx_lm_version = getattr(mlx_lm, "__version__", "unknown")
+    except Exception:
+        mlx_lm_version = "unknown"
+
+    metadata = {
+        "created_at": datetime.now(UTC).isoformat(),
+        "base_model": cfg.train.base_model,
+        "iters": iters,
+        "batch_size_requested": requested,
+        "batch_size_effective": effective,
+        "learning_rate": cfg.train.learning_rate,
+        "rank": cfg.train.rank,
+        "alpha": cfg.train.alpha,
+        "train_rows": n_train,
+        "valid_rows": n_valid,
+        "train_sha1": _sha1(train_path),
+        "valid_sha1": _sha1(valid_path),
+        "mlx_lm_version": mlx_lm_version,
+        "duration_seconds": round(duration_s, 2),
+    }
+    (versioned_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
+
+    # Atomically swap the 'latest' symlink. Use a relative target so the
+    # link survives if the parent dir is moved.
+    latest = adapter_root / "latest"
+    if latest.is_symlink() or latest.exists():
+        latest.unlink()
+    latest.symlink_to(timestamp)
+
+    typer.echo(
+        f"Training complete in {duration_s:.1f}s. "
+        f"Adapter at {versioned_dir} (latest -> {timestamp}).",
+    )
 
 
 @app.command("generate")
