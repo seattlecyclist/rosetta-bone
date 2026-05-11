@@ -26,7 +26,7 @@ rosetta-storyteller ingest --pillar style --limit 3
 rosetta-storyteller ingest --pillar science --limit 5
 rosetta-storyteller ingest --pillar behavior --limit 50
 rosetta-storyteller chunk --all
-rosetta-storyteller embed --all
+rosetta-storyteller embed
 
 rosetta-storyteller sft generate --count 10 --phase pilot
 rosetta-storyteller sft poll
@@ -36,7 +36,31 @@ rosetta-storyteller train --iters 200
 rosetta-storyteller generate "a trip to the vet"
 ```
 
-See [docs/superpowers/specs/](docs/superpowers/specs/) for the v1 design.
+See [docs/superpowers/specs/](docs/superpowers/specs/) for the v1 design and
+[docs/superpowers/plans/](docs/superpowers/plans/) for the implementation plan.
+
+## Iterating: pilot → full
+
+The 1000-request cap is the safety net. Recommended workflow:
+
+1. **Pilot:** `rosetta-storyteller sft generate --count 500 --phase pilot`
+2. Inspect `data/sft/train.jsonl` by hand. Confirm sensory grounding,
+   look for canned phrases, check `cache_read_input_tokens > 0` in the
+   manifest entry (if not, prompt caching is broken).
+3. Iterate `config/stimuli.yaml` and the persona text.
+4. **Full:** `rosetta-storyteller sft generate --count 10000 --phase full --max-requests 10000`
+
+Cost estimate: pilot ≈ $3-5, full ≈ $20-60 (Sonnet 4.6 batch pricing).
+
+## Tests
+
+```sh
+# Unit tests (fast)
+uv run pytest tests/unit -v
+
+# Integration smoke test (slow, costs ~$0.10, downloads model weights)
+ANTHROPIC_API_KEY=... uv run pytest tests/integration -m slow -v
+```
 
 [three-pillars-data-architecture]: https://github.com/agileedge/llm-wiki
 [synthetic-data-sandwich]: https://github.com/agileedge/llm-wiki
