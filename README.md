@@ -134,7 +134,7 @@ Then in the repo:
 
 ```sh
 uv sync
-cp .env.example .env && $EDITOR .env   # add ANTHROPIC_API_KEY
+cp .env.example .env && $EDITOR .env   # add ANTHROPIC_API_KEY (and HF_TOKEN — see below)
 
 uv run rosetta-storyteller ingest --pillar style --limit 3
 uv run rosetta-storyteller ingest --pillar science --limit 5
@@ -153,6 +153,27 @@ uv run rosetta-storyteller generate "a trip to the vet"
 `uv run` runs the command inside the project's venv. Alternatively
 `source .venv/bin/activate` once per shell session and drop the `uv run`
 prefix.
+
+### Recommended: set `HF_TOKEN`
+
+Without an HF token, downloads of the embedding model (~130 MB) and the
+Llama-3.1-8B base model (~4.5 GB) hit anonymous rate limits and emit
+this warning on every run:
+
+> Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+The warning is emitted by `huggingface_hub` via raw `print()` and can't
+be filtered through Python's logging/warnings system — the fix is to
+authenticate. Create a free Read-scope token at
+[huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+and add it to `.env`:
+
+```
+HF_TOKEN=hf_...
+```
+
+No code changes are needed — `huggingface_hub` picks it up
+automatically.
 
 See [docs/superpowers/specs/](docs/superpowers/specs/) for the v1 design and
 [docs/superpowers/plans/](docs/superpowers/plans/) for the implementation plan.
