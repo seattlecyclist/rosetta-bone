@@ -32,7 +32,6 @@ def build_train_argv(
         "--iters", str(iters),
         "--batch-size", str(batch_size),
         "--learning-rate", str(learning_rate),
-        "--lora-layers", "16",
         "--num-layers", "16",
     ]
 

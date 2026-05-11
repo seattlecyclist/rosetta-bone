@@ -18,6 +18,10 @@ def test_build_train_argv_includes_required_flags(tmp_path: Path):
     assert "--iters" in argv and "200" in argv
     assert "--batch-size" in argv and "4" in argv
     assert "--adapter-path" in argv
+    assert "--num-layers" in argv
+    # mlx-lm has no --lora-layers flag; passing it would error with
+    # "unrecognized arguments". Guard against accidental re-addition.
+    assert "--lora-layers" not in argv
 
 
 def test_train_invokes_subprocess_run(tmp_path: Path):
