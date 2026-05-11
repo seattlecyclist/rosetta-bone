@@ -41,7 +41,17 @@ class CachedClient:
                 resp.raise_for_status()
                 cached.write_bytes(resp.content)
                 return resp.content
-            except (httpx.TransportError, httpx.HTTPStatusError) as e:
+            except httpx.HTTPStatusError as e:
+                # 4xx is a client error; retrying won't change the result.
+                if e.response.status_code < 500:
+                    raise
+                wait = 2**attempt
+                _log.warning("http_retry", url=url, attempt=attempt + 1, error=str(e),
+                             sleep_s=wait, status=e.response.status_code)
+                if attempt == self._max_retries - 1:
+                    raise
+                time.sleep(wait)
+            except httpx.TransportError as e:
                 wait = 2**attempt
                 _log.warning("http_retry", url=url, attempt=attempt + 1, error=str(e),
                              sleep_s=wait)
