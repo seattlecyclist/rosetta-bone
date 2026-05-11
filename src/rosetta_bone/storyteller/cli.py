@@ -209,23 +209,31 @@ def train_cmd(
 
     cfg = load_config(config_path)
     train_path = cfg.paths.sft_dir / "train.jsonl"
+    valid_path = cfg.paths.sft_dir / "valid.jsonl"
 
-    # mlx-lm requires batch_size <= n_train_rows. For small pilots
-    # (10-50 SFT pairs), the default batch_size of 4 from default.toml
-    # may exceed the merged train set. Auto-clamp with a warning.
+    # mlx-lm requires batch_size <= len(train_set) AND batch_size <=
+    # len(valid_set) (the trainer runs an initial eval before iter 0).
+    # For small pilots, default batch_size=4 fails on the valid set.
     requested = batch_size if batch_size is not None else cfg.train.batch_size
     n_train = sum(1 for _ in iter_jsonl(train_path))
+    n_valid = sum(1 for _ in iter_jsonl(valid_path))
     if n_train == 0:
         typer.echo(
             f"No training data at {train_path}. Did sft merge run?",
             err=True,
         )
         raise typer.Exit(code=2)
-    effective = min(requested, n_train)
+    if n_valid == 0:
+        typer.echo(
+            f"No validation data at {valid_path}. Did sft merge run?",
+            err=True,
+        )
+        raise typer.Exit(code=2)
+    effective = min(requested, n_train, n_valid)
     if effective < requested:
         typer.echo(
             f"Clamped batch_size {requested} -> {effective} "
-            f"(train.jsonl has only {n_train} rows).",
+            f"(train.jsonl has {n_train} rows, valid.jsonl has {n_valid}).",
         )
 
     res = train(
