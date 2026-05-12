@@ -175,6 +175,8 @@ lives. Far away from my couch.
 
 ## Architecture: end-to-end flow
 
+![Six-stage end-to-end pipeline (ingest → chunk → embed → SFT generate → train → generate)](docs/images/architecture-flow.png)
+
 The pipeline runs as six sequential CLI commands. Stages 1-3 build
 static, idempotent corpus artifacts that don't depend on a frontier
 model or stimuli. Stage 4 is where everything fuses — the curated
