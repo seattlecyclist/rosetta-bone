@@ -634,6 +634,11 @@ The 1000-request cap is the safety net. Recommended workflow:
 
 Cost estimate: pilot ≈ $3-5, full ≈ $20-60 (Sonnet 4.6 batch pricing).
 
+See [docs/pilot-history.md](docs/pilot-history.md) for measured
+results from previous pilots — including the v5 angle-aware retrieval
+change that took kept-after-dedup from ~55 % to ~75 % and absolute
+kept-pair count from 57 to 269 with zero persona violations.
+
 ## Tests
 
 ```sh
