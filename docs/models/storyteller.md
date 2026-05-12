@@ -4,6 +4,48 @@ A model fine-tuned to write fiction from a dog's first-person sensory
 point of view — scent, sound, pheromone — instead of the
 visually-dominant human frame general-purpose LLMs default to.
 
+## Why fine-tune, instead of just prompting a frontier model?
+
+Prompting a frontier model to "respond as a dumb, excitable dog" gets
+you an *impression* of a dog. Fine-tuning shifts the actual next-token
+distribution. A few axes the difference shows up on:
+
+**Voice persistence.** A prompted frontier model is performing — every
+other weight in its network is still pulling toward neutral,
+well-edited prose. Voice drifts back to baseline as context grows or
+the topic moves away from the persona instructions. With a LoRA
+adapter trained on dog-POV fiction (Beautiful Joe, Black Beauty,
+Call of the Wild), the cadence is baked in. The model isn't pretending
+to be a dog; the next-token probabilities have actually shifted.
+
+**Where the sensory detail comes from.** Asked to describe a smell
+from a dog's perspective, a frontier model imagines what a dog might
+smell — which means anthropomorphic projection, because its training
+data is overwhelmingly human-authored prose about dogs. Storyteller's
+training pairs are grounded in retrieved chunks from real canine
+olfaction papers (EuropePMC) and a dog-behaviour Q&A dataset. The
+training data itself contains canine-correct perceptual detail, so the
+model learns the register rather than guessing it.
+
+**The "dumb and confidently wrong" register, specifically.** A
+prompted frontier model performs dumbness while its underlying weights
+still understand cause and effect — the seams show as it knowingly
+mis-describes a situation it clearly grasps. A small (8B 4-bit) model
+fine-tuned into the persona genuinely loses some of that upstream
+sophistication for this style. The wrongness reads as authentic
+because in a real sense it is.
+
+**Iterability.** Prompt engineering fails qualitatively ("this sounds
+too sophisticated") and you patch with more prompt. Fine-tuning fails
+*measurably* — persona-violation counts, dedup-collapse rates,
+kept-fraction per stimulus angle. [docs/pilot-history.md](../pilot-history.md)
+is the record of those iterations, each one a corpus delta with
+numbers attached.
+
+**Ops.** Prompted: you pay for a multi-thousand-token system prompt on
+a frontier-sized model every call. Fine-tuned: an 8B 4-bit adapter
+runs locally, no per-call persona tax.
+
 ## Base model
 
 `mlx-community/Meta-Llama-3.1-8B-Instruct-4bit`, trained on Apple
