@@ -10,20 +10,22 @@ from rosetta_bone.common.logging import get_logger
 
 _log = get_logger(__name__)
 
-# Curated for the dumb/funny dog persona. The first five are
-# gentle/domestic-leaning. The Call of the Wild was added later as a
-# stylistic-risk inclusion: its periodic literary prose is the
-# opposite of the persona we trained, but angle-aware retrieval should
-# route its chunks to wild-edge stimuli (storms, deer, night sounds)
-# where they're actually a good match. Watch persona_violations in
-# `sft stats` on the next pilot — if non-trivial, remove 215 again.
+# Curated for the dumb/funny dog persona. Each entry justifies its
+# place — animal-first-person narration is the structural fit, the
+# specific register varies. Watch `sft stats` total_persona_violations
+# in the next pilot; if non-trivial, revert the most-recent addition.
+#
+# Wind in the Willows (27805) was previously listed but never landed
+# on disk; deliberately dropped before v7 because Mole/Rat/Badger are
+# anthropomorphic Edwardian gentlemen, not animals — Mole has tea and
+# Rat sculls a boat. The prose register pulls the opposite direction
+# from the dumb/funny dog voice.
 GUTENBERG_BOOK_IDS: list[int] = [
-    440,   # Beautiful Joe — Marshall Saunders
-    1059,  # A Dog's Tale — Mark Twain
-    3007,  # Bob, Son of Battle — Alfred Ollivant
-    271,   # Black Beauty — Anna Sewell (anthropomorphic narrator)
-    27805, # The Wind in the Willows — Kenneth Grahame (animal narrators)
-    215,   # The Call of the Wild — Jack London (wild-survival register)
+    440,   # Beautiful Joe — Marshall Saunders (the canonical dog-POV sentimental novel)
+    1059,  # A Dog's Tale — Mark Twain (short, first-person dog narrator)
+    3007,  # Bob, Son of Battle — Alfred Ollivant (working sheepdog protagonist)
+    271,   # Black Beauty — Anna Sewell (first-person animal autobiography; structural template for the genre)
+    215,   # The Call of the Wild — Jack London (wild-survival register; risk-watch in v7)
 ]
 
 _START_RE = re.compile(r"^\*\*\* START OF .* \*\*\*\s*$", re.MULTILINE)
