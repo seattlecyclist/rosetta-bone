@@ -15,6 +15,34 @@ general-purpose LLMs default to. See
 [docs/models/storyteller.md](docs/models/storyteller.md) for what it
 was trained on and how.
 
+## Why fine-tune instead of just prompting a frontier model?
+
+Prompting a frontier model to "be a dumb, excitable dog" gets you an
+impression of a dog — a sophisticated model performing dumbness while
+its weights still understand cause and effect. Voice drifts back to
+neutral as context grows, sensory detail collapses into
+anthropomorphic projection, and you patch failures qualitatively with
+more prompt.
+
+Fine-tuning a small (8B 4-bit) model on dog-POV fiction
+(Beautiful Joe, Black Beauty, Call of the Wild), canine olfaction
+papers, and a real dog-behaviour Q&A dataset shifts the actual
+next-token distribution. The cadence is baked in. The sensory detail
+is grounded. The confidently-wrong register reads as authentic because
+the model genuinely loses some of the upstream logical sophistication
+for this style. And failures show up as numbers — persona-violation
+counts, kept-fraction per stimulus — so each iteration is a measurable
+corpus delta rather than another prompt tweak.
+
+And it runs locally. There is no frontier-model inference bill — no
+per-token cost, no multi-thousand-token persona prompt re-billed on
+every call. A one-time training spend (a few dollars of Claude API
+time to synthesise the SFT corpus, plus a few hours of local GPU
+time on an M2 Max) buys an adapter you can run forever for free.
+
+See [docs/models/storyteller.md](docs/models/storyteller.md#why-fine-tune-instead-of-just-prompting-a-frontier-model)
+for the longer version.
+
 ## Sample outputs
 
 ### Stimulus: `the smell of bacon`
