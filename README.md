@@ -5,7 +5,7 @@
 </p>
 
 An umbrella repo for niche dog-domain LLMs trained via the
-[three-pillars-data-architecture] + [synthetic-data-sandwich] pattern.
+three-pillars-data-architecture + synthetic-data-sandwich pattern.
 
 The first sub-package is **storyteller** — a model fine-tuned to write
 fiction from a dog's first-person sensory point of view (scent, sound,
@@ -14,11 +14,8 @@ general-purpose LLMs default to.
 
 ## Sample outputs
 
-Three real generations from the first usable training run (94 SFT pairs
-from one pilot, 2000 LoRA iters on `Meta-Llama-3.1-8B-Instruct-4bit`,
-M2 Max). The model is appropriately dumb, excitable, and confidently
-wrong about cause-and-effect — exactly the register the persona aims
-for.
+The model is dumb, excitable, and confidently wrong about
+cause-and-effect — exactly what every dog is.
 
 ### Stimulus: `the smell of bacon`
 
