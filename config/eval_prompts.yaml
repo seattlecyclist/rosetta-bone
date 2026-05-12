@@ -1,0 +1,18 @@
+# Frozen eval set. Changing entries here changes the eval_set_sha, which
+# triggers re-generation on the next `rosetta-storyteller eval` run.
+#
+# Mix of two categories:
+#   - trained: prompts the model saw (in some form) during SFT generation.
+#              Tests memorization / register fidelity.
+#   - novel:   prompts the model did NOT see. Tests generalization.
+
+- {prompt: "the mailman arriving",                   form: diary,        category: trained}
+- {prompt: "a trip to the vet",                      form: vignette,     category: trained}
+- {prompt: "dinner being prepared in the kitchen",   form: diary,        category: trained}
+- {prompt: "a thunderstorm at 3am",                  form: short_story,  category: trained}
+- {prompt: "lying in a sunbeam",                     form: vignette,     category: trained}
+- {prompt: "the smell of bacon",                     form: diary,        category: novel}
+- {prompt: "the moon",                               form: vignette,     category: novel}
+- {prompt: "a tennis ball under the couch",          form: diary,        category: novel}
+- {prompt: "the lawnmower next door",                form: vignette,     category: novel}
+- {prompt: "the smell of clean laundry",             form: vignette,     category: novel}

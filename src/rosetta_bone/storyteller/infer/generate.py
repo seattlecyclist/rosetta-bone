@@ -22,6 +22,7 @@ def generate(
     max_tokens: int | None = None,
     temperature: float | None = None,
     top_p: float | None = None,
+    adapter_override: Path | None = None,
     config_path: Path = Path("config/default.toml"),
 ) -> str:
     """Run inference against the fine-tuned model.
@@ -30,12 +31,18 @@ def generate(
     repetition_penalty= kwargs in recent releases. Sampling is now
     configured via `sampler` (a callable built by make_sampler) and
     `logits_processors` (built by make_logits_processors).
+
+    `adapter_override`: if set, load this specific adapter directory
+    (typically a timestamped versioned dir) instead of resolving the
+    'latest' symlink under cfg.paths.adapter_dir. Used by `eval` and
+    by `generate --adapter <ts>` to compare specific training runs.
     """
     from mlx_lm import generate as mlx_generate
     from mlx_lm.sample_utils import make_logits_processors, make_sampler
 
     cfg = load_config(config_path)
-    model, tokenizer = load(cfg.train.base_model, cfg.paths.adapter_dir)
+    adapter_dir = adapter_override if adapter_override is not None else cfg.paths.adapter_dir
+    model, tokenizer = load(cfg.train.base_model, adapter_dir)
     prompt = tokenizer.apply_chat_template(
         [{"role": "user", "content": _format_prompt(stimulus, form)}],
         add_generation_prompt=True,

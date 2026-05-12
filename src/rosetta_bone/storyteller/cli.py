@@ -318,6 +318,19 @@ def train_cmd(
     )
 
 
+def _resolve_adapter_arg(arg: str, adapter_root: Path) -> Path:
+    """Resolve an --adapter argument to a concrete path.
+
+    Accepts either a bare timestamp directory name (looked up under
+    cfg.paths.adapter_dir) or an absolute/relative path that already
+    points at a versioned adapter directory.
+    """
+    p = Path(arg)
+    if p.is_absolute() or "/" in arg:
+        return p
+    return adapter_root / arg
+
+
 @app.command("generate")
 def generate_cmd(
     stimulus: str = typer.Argument(..., help="The stimulus prompt, e.g., 'a trip to the vet'"),
@@ -325,12 +338,115 @@ def generate_cmd(
     max_tokens: int | None = typer.Option(None),
     temperature: float | None = typer.Option(None),
     top_p: float | None = typer.Option(None),
+    adapter: str | None = typer.Option(
+        None, "--adapter",
+        help="Override which trained adapter to use. Pass a timestamp like "
+             "'20260512T015730Z' (resolved under cfg.paths.adapter_dir) or a "
+             "full path to a timestamped adapter dir. Defaults to 'latest'.",
+    ),
     config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
 ) -> None:
     from rosetta_bone.storyteller.infer.generate import generate
 
+    cfg = load_config(config_path)
+    adapter_override = (
+        _resolve_adapter_arg(adapter, cfg.paths.adapter_dir) if adapter else None
+    )
+
     text = generate(
         stimulus, form=form, max_tokens=max_tokens,
-        temperature=temperature, top_p=top_p, config_path=config_path,
+        temperature=temperature, top_p=top_p,
+        adapter_override=adapter_override,
+        config_path=config_path,
     )
     typer.echo(text)
+
+
+@app.command("eval")
+def eval_cmd(
+    adapter: str | None = typer.Option(
+        None, "--adapter",
+        help="Adapter timestamp or full path. Defaults to 'latest'.",
+    ),
+    eval_set: Path = typer.Option(
+        Path("config/eval_prompts.yaml"), "--eval-set",
+        help="YAML file listing the prompts to evaluate.",
+    ),
+    force: bool = typer.Option(
+        False, "--force",
+        help="Re-run even if eval results already exist for this prompt set.",
+    ),
+    max_tokens: int | None = typer.Option(None, "--max-tokens"),
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    """Run a frozen eval prompt set against one adapter; save results next to it."""
+    from rosetta_bone.storyteller.eval_suite import load_prompts, run_eval
+
+    cfg = load_config(config_path)
+    if adapter:
+        adapter_dir = _resolve_adapter_arg(adapter, cfg.paths.adapter_dir)
+    else:
+        latest = cfg.paths.adapter_dir / "latest"
+        if not latest.exists():
+            typer.echo(
+                f"No 'latest' symlink at {latest}. Train at least once first.",
+                err=True,
+            )
+            raise typer.Exit(2)
+        adapter_dir = latest.resolve()
+
+    if not adapter_dir.exists():
+        typer.echo(f"Adapter dir does not exist: {adapter_dir}", err=True)
+        raise typer.Exit(2)
+
+    prompts = load_prompts(eval_set)
+    out_path = run_eval(
+        adapter_dir=adapter_dir,
+        base_model=cfg.train.base_model,
+        prompts=prompts,
+        max_tokens=max_tokens,
+        force=force,
+    )
+    typer.echo(f"Eval results: {out_path}")
+
+
+@app.command("eval-compare")
+def eval_compare_cmd(
+    a: str = typer.Argument(..., help="First adapter: timestamp or path."),
+    b: str = typer.Argument(..., help="Second adapter: timestamp or path."),
+    eval_set: Path = typer.Option(
+        Path("config/eval_prompts.yaml"), "--eval-set",
+        help="Used to compute eval_sha and find the eval-<sha>.json file.",
+    ),
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    """Pretty-print two adapters' eval results side-by-side."""
+    import json as _json
+
+    from rosetta_bone.storyteller.eval_suite import (
+        compare_evals,
+        eval_set_sha,
+        load_prompts,
+    )
+
+    cfg = load_config(config_path)
+    a_dir = _resolve_adapter_arg(a, cfg.paths.adapter_dir)
+    b_dir = _resolve_adapter_arg(b, cfg.paths.adapter_dir)
+    prompts = load_prompts(eval_set)
+    sha = eval_set_sha(prompts)
+    a_path = a_dir / f"eval-{sha}.json"
+    b_path = b_dir / f"eval-{sha}.json"
+
+    missing = [p for p in (a_path, b_path) if not p.exists()]
+    if missing:
+        for p in missing:
+            typer.echo(
+                f"Missing eval file: {p}. "
+                f"Run 'rosetta-storyteller eval --adapter {p.parent.name}' first.",
+                err=True,
+            )
+        raise typer.Exit(2)
+
+    a_data = _json.loads(a_path.read_text())
+    b_data = _json.loads(b_path.read_text())
+    typer.echo(compare_evals(a_data, b_data))
