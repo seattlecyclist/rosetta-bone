@@ -128,7 +128,8 @@ def sft_generate(
         raise typer.Exit(1) from exc
 
     stimuli = load_stimuli(Path("config/stimuli.yaml"))
-    triples = list(islice(expand(stimuli), count))
+    # expand() yields (stimulus, embed_query, variation_idx, form) 4-tuples.
+    pairs = list(islice(expand(stimuli), count))
 
     embedder = Embedder(cfg.retrieval.embedding_model)
     indexes = build_indexes(
@@ -137,13 +138,13 @@ def sft_generate(
         embeddings_dir=cfg.paths.embeddings_dir,
     )
 
-    def selector(stim: str):
+    def selector(embed_query: str):
         return select_chunks(
-            stim, indexes, embedder,
+            embed_query, indexes, embedder,
             similarity_threshold=cfg.retrieval.similarity_threshold,
         )
 
-    plan = plan_batch(triples, select_fn=selector, model=cfg.sft.model, phase=phase)
+    plan = plan_batch(pairs, select_fn=selector, model=cfg.sft.model, phase=phase)
     api_key = os.environ["ANTHROPIC_API_KEY"]
     client = Anthropic(api_key=api_key)
     bid = submit_batch(plan, client=client,

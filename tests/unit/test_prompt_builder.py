@@ -51,13 +51,37 @@ def test_min_chunk_chars_enforced():
         build_system_block(chunks)
 
 
-def test_build_messages_user_block_has_stimulus_and_form():
+def test_build_messages_user_block_has_stimulus_and_form_and_angle():
     chunks = _ok_chunks()
-    msgs = build_messages(chunks, stimulus="vet visit", form="diary", variation=0)
+    msgs = build_messages(
+        chunks,
+        stimulus="vet visit",
+        angle="dog anxious in waiting room",
+        form="diary",
+        variation=0,
+    )
     assert msgs[0]["role"] == "system"
     assert msgs[1]["role"] == "user"
-    assert "vet visit" in msgs[1]["content"]
-    assert "diary" in msgs[1]["content"]
+    user = msgs[1]["content"]
+    assert "vet visit" in user
+    assert "diary" in user
+    # The angle hint must reach Claude — that's the whole point of the
+    # retrieval-variation fix.
+    assert "dog anxious in waiting room" in user
+    assert "Angle:" in user
+
+
+def test_build_messages_different_angles_produce_different_user_blocks():
+    chunks = _ok_chunks()
+    a = build_messages(
+        chunks, stimulus="vet visit", angle="dog anxious in waiting room",
+        form="diary", variation=0,
+    )[1]["content"]
+    b = build_messages(
+        chunks, stimulus="vet visit", angle="dog excited for vet treat",
+        form="diary", variation=0,
+    )[1]["content"]
+    assert a != b
 
 
 def test_min_chunk_chars_constant():

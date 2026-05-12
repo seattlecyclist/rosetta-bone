@@ -1,7 +1,8 @@
 """Plan + submit Anthropic Message Batches for SFT-pair generation.
 
-Per-stimulus retrieval is cached so all variations of one stimulus reuse
-the same chunks (this also maximizes prompt-cache hits server-side).
+Per-angle retrieval is cached so all variations sharing the same
+embed_query reuse the same chunks (this also maximizes prompt-cache
+hits server-side within a stimulus+angle group).
 
 Manifest discipline: every batch is written to data/sft/manifest.jsonl
 BEFORE the network call returns. A crash mid-submit leaves the manifest
@@ -27,10 +28,12 @@ _log = get_logger(__name__)
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
 
 # Anthropic Batches require custom_id to match ^[a-zA-Z0-9_-]{1,64}$ —
-# no colons, no other punctuation. Slug separator is `__`, slugs are
-# clamped so phase + slug + variation fit comfortably under 64 chars.
+# no colons, no other punctuation. Slug separator is `__`. With the
+# four-component custom_id `{phase}__{slug}__a{angle_idx}__v{var_idx}`
+# (separators alone = 6 chars), the slug is clamped at 30 to leave
+# headroom for a typical phase tag plus two-digit indices.
 _CUSTOM_ID_SEP = "__"
-_SLUG_MAX_LEN = 40
+_SLUG_MAX_LEN = 30
 
 
 def _slug(s: str) -> str:
@@ -60,21 +63,44 @@ def enforce_request_cap(*, count: int, cap: int) -> None:
 
 
 def plan_batch(
-    triples: Iterable[tuple[str, int, str]],
+    triples: Iterable[tuple[str, str, int, str]],
     *,
     select_fn: Callable[[str], dict[Pillar, Chunk]],
     model: str,
     phase: str,
 ) -> BatchPlan:
-    cache: dict[str, dict[Pillar, Chunk]] = {}
+    """Plan one batch from (stimulus, embed_query, variation, form) triples.
+
+    Chunks are cached per `embed_query` — that's the actual retrieval
+    input, and Claude gets the same chunks across all variations of one
+    angle so the cached server-side prompt prefix benefits within that
+    group. Variations across different angles see different chunks.
+
+    `custom_id` is `{phase}__{slug(stimulus)}__a{angle_idx}__v{var_idx}`
+    where `angle_idx` is a small integer assigned in first-seen order
+    per stimulus (so different stimuli can reuse `a0`).
+    """
+    chunk_cache: dict[str, dict[Pillar, Chunk]] = {}
+    angle_idx_per_stim: dict[str, dict[str, int]] = {}
     requests: list[BatchRequest] = []
-    for stimulus, variation, form in triples:
-        if stimulus not in cache:
-            cache[stimulus] = select_fn(stimulus)
-        chunks = cache[stimulus]
-        msgs = build_messages(chunks, stimulus=stimulus, form=form, variation=variation)
+    for stimulus, query, variation, form in triples:
+        if query not in chunk_cache:
+            chunk_cache[query] = select_fn(query)
+        angle_map = angle_idx_per_stim.setdefault(stimulus, {})
+        if query not in angle_map:
+            angle_map[query] = len(angle_map)
+        a_idx = angle_map[query]
+
+        msgs = build_messages(
+            chunk_cache[query],
+            stimulus=stimulus,
+            angle=query,
+            form=form,
+            variation=variation,
+        )
+        sep = _CUSTOM_ID_SEP
         requests.append(BatchRequest(
-            custom_id=f"{phase}{_CUSTOM_ID_SEP}{_slug(stimulus)}{_CUSTOM_ID_SEP}{variation}",
+            custom_id=f"{phase}{sep}{_slug(stimulus)}{sep}a{a_idx}{sep}v{variation}",
             messages=msgs,
         ))
     return BatchPlan(requests=requests, model=model, phase=phase)

@@ -1,24 +1,178 @@
 # Curated dog-life stimuli for SFT generation.
-# `prompt`: the user-visible stimulus
-# `variations`: how many SFT pairs to generate for this stimulus
-# `form`: one of diary | vignette | short_story (informs length & framing)
-- {prompt: "the mailman arriving",                  variations: 8, form: diary}
-- {prompt: "a trip to the vet",                     variations: 8, form: vignette}
-- {prompt: "owner returning home from work",        variations: 6, form: diary}
-- {prompt: "dinner being prepared in the kitchen",  variations: 6, form: vignette}
-- {prompt: "a thunderstorm at 3am",                 variations: 5, form: short_story}
-- {prompt: "meeting another dog at the park",       variations: 6, form: vignette}
-- {prompt: "the vacuum cleaner being used",         variations: 4, form: vignette}
-- {prompt: "a long car ride",                       variations: 5, form: diary}
-- {prompt: "a bath being run",                      variations: 4, form: vignette}
-- {prompt: "first snow on the back yard",           variations: 4, form: short_story}
-- {prompt: "a squirrel on the fence",               variations: 5, form: vignette}
-- {prompt: "the doorbell ringing",                  variations: 4, form: vignette}
-- {prompt: "owner crying on the couch",             variations: 3, form: diary}
-- {prompt: "a new baby in the house",               variations: 4, form: short_story}
-- {prompt: "moving to a new home",                  variations: 3, form: short_story}
-- {prompt: "fireworks on a summer night",           variations: 3, form: vignette}
-- {prompt: "the sound of car keys",                 variations: 4, form: diary}
-- {prompt: "lying in a sunbeam",                    variations: 4, form: vignette}
-- {prompt: "a cat trespassing in the garden",       variations: 4, form: short_story}
-- {prompt: "owner returning from a long trip",      variations: 4, form: diary}
+#
+# Each entry produces  len(embed_queries) * variations_per_query  SFT
+# requests. The angles in embed_queries are what drive variation:
+#
+#   - Each angle is independently embedded and used as the FAISS query
+#     against all three pillar indexes, so different angles pull in
+#     different chunks (different behavior rows, different science
+#     passages, different style snippets).
+#   - The angle is also surfaced to Claude as an `Angle:` hint in the
+#     user block, so the generated story is recognizably *this* version
+#     of the scene rather than a generic instance.
+#
+# Convention for angles: pick *behavioral or emotional or sensory*
+# slices, not paraphrases. "dog hiding from loud mailman" retrieves
+# different chunks than "dog begging mailman for treats". "the mail
+# carrier arrives" retrieves the same chunks as the base prompt and
+# adds nothing.
+
+- prompt: "the mailman arriving"
+  embed_queries:
+    - "dog reacting aggressively to mailman at door"
+    - "dog hiding from loud mailman delivery"
+    - "dog greeting mailman with begging behavior"
+  variations_per_query: 3
+  form: diary
+
+- prompt: "a trip to the vet"
+  embed_queries:
+    - "dog anxious in veterinary waiting room"
+    - "dog sniffing antiseptic smells in vet clinic"
+    - "dog excited about treat after veterinary exam"
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "owner returning home from work"
+  embed_queries:
+    - "dog ecstatic at owner's return after long absence"
+    - "dog sulking after being left alone all day"
+    - "dog reading the owner's scent for clues about the day"
+  variations_per_query: 3
+  form: diary
+
+- prompt: "dinner being prepared in the kitchen"
+  embed_queries:
+    - "dog begging at the stove for cooking food"
+    - "dog hyper-focused on dropped food on the kitchen floor"
+    - "dog tracking the cooking aroma plume through the house"
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "a thunderstorm at 3am"
+  embed_queries:
+    - "dog terrified by thunder hiding under the bed"
+    - "dog alerted by ozone scent before storm arrives"
+    - "dog comforted by owner during thunder phobia"
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "meeting another dog at the park"
+  embed_queries:
+    - "dog excited greeting another friendly dog"
+    - "dog tense and reserved with unfamiliar dog"
+    - "dog reading scent markings left by other dogs"
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "the vacuum cleaner being used"
+  embed_queries:
+    - "dog terrified of vacuum cleaner noise"
+    - "dog stalking and attacking the vacuum"
+    - "dog hiding from vacuum in safe room"
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "a long car ride"
+  embed_queries:
+    - "dog motion sick on long car ride"
+    - "dog exhilarated by wind from open car window"
+    - "dog anxiously watching streetlights from back seat"
+  variations_per_query: 3
+  form: diary
+
+- prompt: "a bath being run"
+  embed_queries:
+    - "dog terrified of bath time water"
+    - "dog stoically tolerating a soapy bath"
+    - "dog playing in shallow bath water"
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "first snow on the back yard"
+  embed_queries:
+    - "dog discovering snow for the first time"
+    - "dog frolicking face-first in deep snow"
+    - "dog tracking new smells dampened by snow"
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "a squirrel on the fence"
+  embed_queries:
+    - "dog frenzied chase of squirrel along fence"
+    - "dog frustrated by squirrel mocking from a tree"
+    - "dog stalking squirrel scent on the fence rail"
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "the doorbell ringing"
+  embed_queries:
+    - "dog barking at the doorbell with full alarm"
+    - "dog confused by doorbell when nobody is at the door"
+    - "dog excited at doorbell expecting a guest"
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "owner crying on the couch"
+  embed_queries:
+    - "dog comforting crying owner with gentle nudges"
+    - "dog confused and distressed by owner's tears"
+    - "dog reading the salt and stress chemicals in owner's tears"
+  variations_per_query: 3
+  form: diary
+
+- prompt: "a new baby in the house"
+  embed_queries:
+    - "dog cautiously sniffing the new baby's blanket"
+    - "dog jealous of new baby attention"
+    - "dog protective of new baby on the floor"
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "moving to a new home"
+  embed_queries:
+    - "dog overwhelmed by new house unfamiliar smells"
+    - "dog comforted by familiar bed in new home"
+    - "dog exploring new yard for the first time"
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "fireworks on a summer night"
+  embed_queries:
+    - "dog hiding in closet from fireworks booms"
+    - "dog trembling pressed against owner during fireworks"
+    - "dog detecting fireworks scent before the booms"
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "the sound of car keys"
+  embed_queries:
+    - "dog ecstatic at car keys expecting a walk"
+    - "dog dejected at car keys expecting to be left alone"
+    - "dog confused by car keys jingling pattern"
+  variations_per_query: 3
+  form: diary
+
+- prompt: "lying in a sunbeam"
+  embed_queries:
+    - "dog blissfully drowsing in warm sun patch"
+    - "dog tracking the sunbeam as it moves across the floor"
+    - "dog smelling dust motes in the warm sunbeam air"
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "a cat trespassing in the garden"
+  embed_queries:
+    - "dog outraged by cat scent on the garden fence"
+    - "dog fruitlessly chasing cat up a tree"
+    - "dog gravely studying the cat from the kitchen window"
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "owner returning from a long trip"
+  embed_queries:
+    - "dog overwhelmed with joy at owner's return after a week away"
+    - "dog suspicious of strange travel smells on returning owner"
+    - "dog sulking briefly before forgiving the absent owner"
+  variations_per_query: 3
+  form: diary

@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from rosetta_bone.storyteller.sft.stimuli import (
     Stimulus,
     expand,
@@ -11,16 +13,66 @@ def test_load_default_stimuli():
     stimuli = load_stimuli(Path("config/stimuli.yaml"))
     assert len(stimuli) >= 15
     assert all(isinstance(s, Stimulus) for s in stimuli)
-    assert all(s.variations >= 1 for s in stimuli)
+    # Every stimulus must declare at least one retrieval angle.
+    assert all(len(s.embed_queries) >= 1 for s in stimuli)
+    assert all(s.variations_per_query >= 1 for s in stimuli)
+    # Curated default uses behavioral angles, not bare paraphrases.
+    sample = stimuli[0]
+    assert sample.embed_queries != [sample.prompt]
 
 
-def test_expand():
+def test_expand_yields_four_tuples():
     s = [
-        Stimulus(prompt="vet visit", variations=3, form="diary"),
-        Stimulus(prompt="mailman", variations=2, form="vignette"),
+        Stimulus(
+            prompt="vet visit",
+            embed_queries=["dog anxious at the vet", "dog excited for vet treat"],
+            variations_per_query=2,
+            form="diary",
+        ),
+        Stimulus(
+            prompt="mailman",
+            embed_queries=["dog barking at mailman"],
+            variations_per_query=3,
+            form="vignette",
+        ),
     ]
     pairs = list(expand(s))
-    assert len(pairs) == 5
-    assert pairs[0] == ("vet visit", 0, "diary")
-    assert pairs[2] == ("vet visit", 2, "diary")
-    assert pairs[3] == ("mailman", 0, "vignette")
+    # 2 angles * 2 vars + 1 angle * 3 vars = 7
+    assert len(pairs) == 7
+
+    # Shape: (stimulus, embed_query, variation_idx, form).
+    assert pairs[0] == ("vet visit", "dog anxious at the vet", 0, "diary")
+    assert pairs[1] == ("vet visit", "dog anxious at the vet", 1, "diary")
+    assert pairs[2] == ("vet visit", "dog excited for vet treat", 0, "diary")
+    assert pairs[3] == ("vet visit", "dog excited for vet treat", 1, "diary")
+    assert pairs[4] == ("mailman", "dog barking at mailman", 0, "vignette")
+    assert pairs[6] == ("mailman", "dog barking at mailman", 2, "vignette")
+
+
+def test_expand_variation_index_resets_per_angle():
+    s = [Stimulus(
+        prompt="x",
+        embed_queries=["a", "b"],
+        variations_per_query=3,
+        form="diary",
+    )]
+    pairs = list(expand(s))
+    indices_per_angle = {}
+    for _, angle, var, _ in pairs:
+        indices_per_angle.setdefault(angle, []).append(var)
+    assert indices_per_angle == {"a": [0, 1, 2], "b": [0, 1, 2]}
+
+
+def test_stimulus_rejects_empty_embed_queries():
+    with pytest.raises(ValueError, match="at least one"):
+        Stimulus(prompt="x", embed_queries=[], variations_per_query=1, form="diary")
+
+
+def test_stimulus_rejects_whitespace_only_embed_query():
+    with pytest.raises(ValueError, match="non-empty"):
+        Stimulus(
+            prompt="x",
+            embed_queries=["good angle", "  "],
+            variations_per_query=1,
+            form="diary",
+        )

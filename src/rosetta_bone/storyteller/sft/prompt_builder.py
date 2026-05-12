@@ -67,12 +67,21 @@ def build_messages(
     chunks: dict[Pillar, Chunk],
     *,
     stimulus: str,
+    angle: str,
     form: str,
     variation: int,
 ) -> list[dict[str, str]]:
+    """Assemble the system+user messages for one Anthropic request.
+
+    `stimulus` is the user-facing scene name; `angle` is the specific
+    behavioral/emotional slice that drove FAISS retrieval for this
+    request. Both are surfaced to Claude so it can write a story that
+    is recognizably *this* version of the scene (not just any version).
+    """
     system = build_system_block(chunks)
     user = (
         f'Stimulus: "{stimulus}".\n'
+        f'Angle: "{angle}".\n'
         f"Form: {form}.\n"
         f"Variation index: {variation}.\n"
         f"Return JSON only."
