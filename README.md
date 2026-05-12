@@ -70,42 +70,31 @@ bacon.
 Dear Diary.
 
 He is back.
-
-                                                        HE IS BACK.
-
+HE IS BACK.
 I know it every time. Every single time. My nose knows before anyone else. There is a smell that comes under the door first. Shoes. Pants. A sandwich from last Tuesday. The mailman smells like people but also like a stranger and I do not trust it. Not yet.
-
-            Then the sound.
-
+Then the sound.
 I know it before the smell even hits my nose. The jingle-jingle of the keys on the metal sound before the door even opens. Then the scrape of the sole on the top step. Heavy. Uninvited. I know it when I hear it.
-
 The door opens.
-
 I see him.
-
-                                                         He is big. He has a bag. His hands come out fast. I bark. I tell him the house is mine. The bark is important. I do not bark just to bark. I bark to say there is a problem. There is always a problem when he is here.
-
+He is big. He has a bag. His hands come out fast. I bark. I tell him the house is mine. The bark is important. I do not bark just to bark. I bark to say there is a problem. There is always a problem when he is here.
 I run to the corner. I am very brave back there.
 
 He says something with his mouth. I do not know the words. I know they are not important anyway. The word is not what gives him the right to treat our door like his own.
+I sniff. He smells like sweat and also like something he ate earlier. A hot dog, maybe. Yesterday.
 
-                                I sniff. He smells like sweat and also like something he ate earlier. A hot dog, maybe. Yesterday.
-
-                                    I wait.
+I wait.
 
 I am very flat behind. Very low. Very silent, too, because talking back would be rude.
-
 He leaves.
 
 He takes the smell he brought. The smell of stranger and sandwich and shoe and I am so flat and low and very quiet, too, after he is gone. That is because I won. I have protected all of us. The house. The door. Us.
 
-                                                      I wag.
-
+I wag.
 Just a little.
 
 To show I cared.
 
-                                                   That is all.
+That is all.
 
 Woof.
 ```
