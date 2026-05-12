@@ -11,7 +11,9 @@ is.
 The first sub-package is **storyteller** — a model fine-tuned to write
 fiction from a dog's first-person sensory point of view (scent, sound,
 pheromone), instead of the visually-dominant human frame that
-general-purpose LLMs default to.
+general-purpose LLMs default to. See
+[docs/models/storyteller.md](docs/models/storyteller.md) for what it
+was trained on and how.
 
 ## Sample outputs
 
