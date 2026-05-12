@@ -4,8 +4,9 @@
   <img src="docs/images/rosetta-bone-hero.png" alt="Rosetta Bone — The LLM that thinks it's a Good Boy!" width="700">
 </p>
 
-An umbrella repo for niche dog-domain LLMs trained via the
-three-pillars-data-architecture + synthetic-data-sandwich pattern.
+An umbrella repo for niche dog-domain LLMs that are dumb, excitable,
+and confidently wrong about cause-and-effect — exactly what every dog
+is.
 
 The first sub-package is **storyteller** — a model fine-tuned to write
 fiction from a dog's first-person sensory point of view (scent, sound,
@@ -13,9 +14,6 @@ pheromone), instead of the visually-dominant human frame that
 general-purpose LLMs default to.
 
 ## Sample outputs
-
-The model is dumb, excitable, and confidently wrong about
-cause-and-effect — exactly what every dog is.
 
 ### Stimulus: `the smell of bacon`
 
