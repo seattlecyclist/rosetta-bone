@@ -194,6 +194,53 @@ def sft_poll(
         time.sleep(interval)
 
 
+@sft_app.command("stats")
+def sft_stats_cmd(
+    output: Path | None = typer.Option(
+        None, "--output",
+        help="Write the JSON report to this path. Default: "
+             "data/sft/stats-<sha>.json next to the corpus.",
+    ),
+    stimuli_path: Path = typer.Option(
+        Path("config/stimuli.yaml"), "--stimuli",
+        help="Used to map custom_ids back to stimulus + angle.",
+    ),
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    """Inspect the merged SFT corpus before training.
+
+    Joins raw batch results with the merged train+valid to surface:
+    dedup rate, per-stimulus and per-angle balance, story length
+    distribution, and persona-violation flags. Run between `sft merge`
+    and `train` to catch a bad pilot before spending GPU time on it.
+    """
+    import hashlib
+    import json as _json
+
+    from rosetta_bone.storyteller.sft.stats import (
+        compute_stats,
+        format_stats_table,
+    )
+
+    cfg = load_config(config_path)
+    stats = compute_stats(
+        batches_dir=cfg.paths.sft_dir / "batches",
+        train_path=cfg.paths.sft_dir / "train.jsonl",
+        valid_path=cfg.paths.sft_dir / "valid.jsonl",
+        stimuli_path=stimuli_path,
+    )
+
+    typer.echo(format_stats_table(stats))
+
+    if output is None:
+        body = _json.dumps(stats, sort_keys=True).encode()
+        sha = hashlib.sha1(body).hexdigest()[:10]
+        output = cfg.paths.sft_dir / f"stats-{sha}.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(_json.dumps(stats, indent=2))
+    typer.echo(f"\nWritten to {output}")
+
+
 @sft_app.command("merge")
 def sft_merge(
     valid_fraction: float = typer.Option(0.1),

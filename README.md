@@ -320,6 +320,20 @@ the persona, never the pillar chunks.
 │   {messages: [{role: user, content: instruction},                   │
 │               {role: assistant, content: story}]}                   │
 │                                                                     │
+│                               │                                     │
+│                               ▼                                     │
+│  ── sft stats  (pre-training inspection — run BEFORE train) ───     │
+│                                                                     │
+│  Joins raw batch results (custom_id → stimulus + angle) with the    │
+│  merged train+valid (survivorship after dedup) to surface:          │
+│   • overall dedup rate                                              │
+│   • per-stimulus and per-angle pair counts + kept fractions         │
+│     (angles producing low kept% are candidates to redesign)         │
+│   • story token length distribution (p10/p50/p90/max)               │
+│   • persona-violation flags (substring scan for "olfactory plume",  │
+│     "I contemplated", etc.)                                         │
+│  Writes data/sft/stats-<sha>.json next to the corpus.               │
+│                                                                     │
 │  ⚠ Persona, contract, and pillar chunks exist ONLY in this          │
 │    stage's prompts. The trained model never sees them again.        │
 └─────────────────────────────┬───────────────────────────────────────┘
@@ -474,6 +488,25 @@ file, validates the JSON, dedupes by instruction hash, splits 90/10
 into `data/sft/train.jsonl` + `data/sft/valid.jsonl` in mlx-lm chat
 format, and logs token totals + estimated USD cost.
 
+`sft stats` is the pre-training inspector. Run it **between `merge`
+and `train`** to catch a bad pilot before spending GPU time. It joins
+raw batch results (which carry `custom_id → stimulus + angle`
+attribution) with the merged train+valid (which carries dedup
+survivorship), then prints:
+
+- Overall counts: raw, errored, invalid-JSON, generated-valid, kept,
+  persona-violation totals.
+- Per-stimulus pair counts + kept fractions — exposes which stimuli
+  hit dedup hardest.
+- Per-(stimulus, angle) breakdown — angles producing low kept% are
+  candidates to redesign or drop in `config/stimuli.yaml`.
+- Story token length distribution (p10/p50/p90/max).
+- Persona-violation flags (substring scan for `"olfactory plume"`,
+  `"I contemplated"`, etc. — markers the persona explicitly forbids).
+
+A JSON copy is written to `data/sft/stats-<sha>.json` next to the
+corpus for archival/comparison across pilots.
+
 ### 5. `train` — LoRA fine-tune on Apple Silicon
 
 Shells out to `python -m mlx_lm.lora --train` against
@@ -522,8 +555,9 @@ uv run rosetta-storyteller chunk --all
 uv run rosetta-storyteller embed
 
 uv run rosetta-storyteller sft generate --count 10 --phase pilot
-uv run rosetta-storyteller sft poll       # repeat until "All batches downloaded."
+uv run rosetta-storyteller sft poll --wait     # blocks until "All batches downloaded."
 uv run rosetta-storyteller sft merge
+uv run rosetta-storyteller sft stats           # inspect BEFORE training
 
 uv run rosetta-storyteller train --iters 200
 uv run rosetta-storyteller generate "a trip to the vet"
@@ -576,12 +610,27 @@ uv run rosetta-storyteller -v ingest --pillar science --limit 5
 The 1000-request cap is the safety net. Recommended workflow:
 
 1. **Pilot:** `uv run rosetta-storyteller sft generate --count 500 --phase pilot`
-2. Inspect `data/sft/train.jsonl` by hand. Confirm sensory grounding,
-   look for canned phrases, check `cache_read_input_tokens > 0` in
-   `data/sft/manifest.jsonl` (if it's `0`, prompt caching is broken
-   and you're not getting the 50% batch + cache discount).
-3. Iterate `config/stimuli.yaml` and the persona text.
-4. **Full:** `uv run rosetta-storyteller sft generate --count 10000 --phase full --max-requests 10000`
+2. `uv run rosetta-storyteller sft poll --wait` — blocks until downloaded.
+3. `uv run rosetta-storyteller sft merge`
+4. **`uv run rosetta-storyteller sft stats`** — read this output carefully.
+   Things to look for:
+   - **Dedup rate.** Kept fraction below ~60% means too many variations
+     are collapsing — review the per-angle table and redesign weak
+     angles in `stimuli.yaml` before the full run.
+   - **Per-stimulus balance.** Stimuli with very low kept counts may
+     need additional angles or different `embed_queries`.
+   - **Persona violations.** Any non-zero count means the persona
+     is leaking ("olfactory plume", "I contemplated", etc.). Tighten
+     `persona.py` before training.
+   - **Cache health.** Check `cache_read_input_tokens > 0` in
+     `data/sft/manifest.jsonl` — if it's `0`, prompt caching is broken
+     and you're paying 2× what you should be.
+   - **Eyeball a few stories** with
+     `head -3 data/sft/train.jsonl | jq -r '.messages[1].content'`.
+5. Iterate `config/stimuli.yaml` and the persona text if any of the
+   above looks off. Re-run from step 1.
+6. **Full:** `uv run rosetta-storyteller sft generate --count 10000 --phase full --max-requests 10000` →
+   `sft poll --wait` → `sft merge` → `sft stats` → `train`.
 
 Cost estimate: pilot ≈ $3-5, full ≈ $20-60 (Sonnet 4.6 batch pricing).
 
