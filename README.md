@@ -636,10 +636,18 @@ The 1000-request cap is the safety net. Recommended workflow:
 
 Cost estimate: pilot ≈ $3-5, full ≈ $20-60 (Sonnet 4.6 batch pricing).
 
-See [docs/pilot-history.md](docs/pilot-history.md) for measured
-results from previous pilots — including the v5 angle-aware retrieval
-change that took kept-after-dedup from ~55 % to ~75 % and absolute
-kept-pair count from 57 to 269 with zero persona violations.
+## Pilot history
+
+Each pilot is logged as a self-contained snapshot — what changed
+(schema / code / config delta + commit SHAs), the resulting `sft
+stats` numbers, findings and lessons learned, and a pointer to the
+raw `data/sft/stats-<sha>.json` artifact. The goal is that every
+future pilot can be compared like-for-like against the prior one.
+
+See [docs/pilot-history.md](docs/pilot-history.md) for the full log —
+including the v5 angle-aware retrieval change that took
+kept-after-dedup from ~55 % to ~75 % and absolute kept-pair count
+from 57 to 269 with zero persona violations.
 
 ## Tests
 
