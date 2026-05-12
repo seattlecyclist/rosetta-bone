@@ -20,6 +20,232 @@ general-purpose LLMs default to.
 - `data/` — derived artifacts (gitignored)
 - `docs/superpowers/specs/` — design specs
 
+## Architecture: end-to-end flow
+
+The pipeline runs as six sequential CLI commands. Stages 1-3 build
+static, idempotent corpus artifacts that don't depend on a frontier
+model or stimuli. Stage 4 is where everything fuses — the curated
+stimuli, the three pillar chunks (selected via FAISS retrieval), and
+the persona+contract are all assembled into Anthropic prompts, and the
+resulting `(instruction, story)` pairs become the training data.
+Stages 5-6 are strictly downstream — they only see those pairs, never
+the persona, never the pillar chunks.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  STAGE 1: ingest --pillar {style|science|behavior}                  │
+│                                                                     │
+│  Project Gutenberg          EuropePMC              pawgaze/pawgaze  │
+│  (curated public-domain     (open-access papers   (visual-Q&A       │
+│   animal-POV fiction)        on canine olfaction)  benchmark on HF) │
+│         │                          │                     │         │
+│         ▼                          ▼                     ▼         │
+│  data/raw/style/            data/raw/science/      data/raw/        │
+│   {id}.txt                   {pmcid}.pdf            behavior/       │
+│                              {pmcid}.json           pawgaze.jsonl   │
+│                                                                     │
+│  Idempotent: existing files are skipped. HTTP cache under           │
+│  data/raw/_cache/ avoids refetching even if outputs are deleted.    │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────────┐
+│  STAGE 2: chunk --all                                               │
+│                                                                     │
+│  Reads each pillar's raw files (PDFs via pdfplumber, behavior       │
+│  JSONL row-by-row), splits to ~600-token chunks with 80-token       │
+│  overlap on paragraph→sentence boundaries (tiktoken cl100k_base).   │
+│  Chunk IDs are stable hashes — re-chunking the same source gives    │
+│  identical IDs.                                                     │
+│                                                                     │
+│         │                                                           │
+│         ▼                                                           │
+│  data/chunks/{style,science,behavior}.jsonl                         │
+│    {id, source, pillar, text, metadata}                             │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────────┐
+│  STAGE 3: embed                                                     │
+│                                                                     │
+│  Encodes every chunk with sentence-transformers                     │
+│  BAAI/bge-small-en-v1.5 (384-dim, L2-normalized). Builds one        │
+│  FAISS IndexFlatIP per pillar so cosine-similarity retrieval        │
+│  is fast (inner product on unit vectors == cosine).                 │
+│                                                                     │
+│         │                                                           │
+│         ▼                                                           │
+│  data/embeddings/{style,science,behavior}.faiss + .ids.json         │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────────┐
+│  STAGE 4: sft generate / poll / merge  (the load-bearing stage)     │
+│                                                                     │
+│  ┌─ config/stimuli.yaml ──────────────────────────────────────┐     │
+│  │ - prompt: "the mailman arriving"  variations: 8  form: ... │     │
+│  │ - prompt: "a trip to the vet"     variations: 8  form: ... │     │
+│  │ - ...                                                      │     │
+│  └────────────────────────┬───────────────────────────────────┘     │
+│                           │  expand to (stimulus, variation,        │
+│                           ▼  form) triples                          │
+│                                                                     │
+│  ─── For each UNIQUE stimulus (per-stimulus retrieval cache) ───    │
+│                                                                     │
+│                ┌──────────────────────────────┐                     │
+│                │  Embedder.embed(             │                     │
+│                │     "the mailman arriving")  │ ◀── same BAAI/bge   │
+│                │                              │     model used in   │
+│                │  → 384-dim unit vector       │     Stage 3         │
+│                └──────────────┬───────────────┘                     │
+│                               │                                     │
+│         ┌─────────────────────┼─────────────────────┐               │
+│         ▼                     ▼                     ▼               │
+│  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐       │
+│  │science.faiss │      │ style.faiss  │      │behavior.faiss│       │
+│  │ IndexFlatIP  │      │ IndexFlatIP  │      │ IndexFlatIP  │       │
+│  │              │      │              │      │              │       │
+│  │.query(qvec,  │      │.query(qvec,  │      │.query(qvec,  │       │
+│  │  top_k=1)    │      │  top_k=1)    │      │  top_k=1)    │       │
+│  │  → cos sim   │      │  → cos sim   │      │  → cos sim   │       │
+│  └──────┬───────┘      └──────┬───────┘      └──────┬───────┘       │
+│         │ chunk_id            │ chunk_id            │ chunk_id      │
+│         ▼                     ▼                     ▼               │
+│  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐       │
+│  │ id → Chunk   │      │ id → Chunk   │      │ id → Chunk   │       │
+│  │   map        │      │   map        │      │   map        │       │
+│  └──────┬───────┘      └──────┬───────┘      └──────┬───────┘       │
+│         │                     │                     │               │
+│         ▼                     ▼                     ▼               │
+│  e.g. the              e.g. the                e.g. the             │
+│  vomeronasal           mailman scene           pawgaze row about    │
+│  passage from a        from Beautiful Joe      a dog rushing the    │
+│  PMC paper             (style chunk)           door at a visitor    │
+│  (science chunk)                               (behavior chunk)     │
+│                                                                     │
+│         │                     │                     │               │
+│         └─────────────────────┼─────────────────────┘               │
+│                               ▼                                     │
+│                                                                     │
+│  ─── Build ONE Claude request per (stimulus, variation, form) ───   │
+│                                                                     │
+│  prompt_builder.py:                                                 │
+│                                                                     │
+│   ┌──────────────────────────────────────────────────────────┐      │
+│   │ System block  (cacheable; identical persona+contract     │      │
+│   │ across all requests; chunks identical for variations of  │      │
+│   │ the same stimulus)                                       │      │
+│   │                                                          │      │
+│   │   <persona>dumb/funny dog spec</persona>                 │      │
+│   │   <contract>"Do NOT invent — base sensory details        │      │
+│   │       strictly on the provided text..."</contract>       │      │
+│   │   <science> {retrieved science chunk} </science>         │      │
+│   │   <style>   {retrieved style chunk}   </style>           │      │
+│   │   <behavior>{retrieved behavior chunk}</behavior>        │      │
+│   └──────────────────────────────────────────────────────────┘      │
+│   ┌──────────────────────────────────────────────────────────┐      │
+│   │ User block                                               │      │
+│   │   "Stimulus: 'the mailman arriving'.                     │      │
+│   │    Form: diary.  Variation: 0."                          │      │
+│   └──────────────────────────────────────────────────────────┘      │
+│                               │                                     │
+│                               ▼                                     │
+│  Anthropic Message Batches API (claude-sonnet-4-6)                  │
+│   • 50 % batch discount                                             │
+│   • Cached system prefix → 90 % discount on persona + contract      │
+│   • Within a batch, cached chunks block reused across all N         │
+│     variations of the same stimulus                                 │
+│   • Returns: {"instruction": "...", "story": "..."} per request     │
+│                                                                     │
+│                               │                                     │
+│                               ▼                                     │
+│  data/sft/batches/{batch_id}.jsonl   (raw API results)              │
+│  data/sft/manifest.jsonl             (status + token + cost log)    │
+│                                                                     │
+│  merge: parse, validate JSON, dedup by instruction SHA-1,           │
+│         90/10 split into mlx-lm chat format                         │
+│                               │                                     │
+│                               ▼                                     │
+│  data/sft/train.jsonl   +   data/sft/valid.jsonl                    │
+│   {messages: [{role: user, content: instruction},                   │
+│               {role: assistant, content: story}]}                   │
+│                                                                     │
+│  ⚠ Persona, contract, and pillar chunks exist ONLY in this          │
+│    stage's prompts. The trained model never sees them again.        │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────────┐
+│  STAGE 5: train --iters N                                           │
+│                                                                     │
+│  Shells out to `python -m mlx_lm.lora --train ...`                  │
+│                                                                     │
+│  Base: mlx-community/Meta-Llama-3.1-8B-Instruct-4bit                │
+│  LoRA on top 8 transformer blocks; rank 8, alpha 16, AdamW.         │
+│  --grad-checkpoint + --max-seq-length 1024 to fit 32 GB.            │
+│                                                                     │
+│  Each iter samples a batch from train.jsonl, runs the chat-         │
+│  formatted prompt through base+LoRA, computes loss against the      │
+│  assistant turn, updates the (small) LoRA weights. Periodic eval    │
+│  on valid.jsonl.                                                    │
+│                                                                     │
+│  mlx-lm sees only the literal (user → assistant) message pairs.     │
+│  No persona, no contract, no pillar chunks at this stage.           │
+│                                                                     │
+│         │                                                           │
+│         ▼                                                           │
+│  data/adapters/llama31-8b-storyteller-v1/{ISO-timestamp}/           │
+│    adapters.safetensors   ◀── LoRA weight delta                     │
+│    metadata.json          ◀── base_model, iters, batch_size,        │
+│                               data hashes, duration, mlx-lm version │
+│  data/adapters/llama31-8b-storyteller-v1/latest → {timestamp}/      │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────────┐
+│  STAGE 6: generate "<stimulus>" [--form ...]                        │
+│                                                                     │
+│  Resolves `latest` symlink → most recent adapter.                   │
+│  Loads base model + LoRA into MLX (cached after first call in this  │
+│  process).                                                          │
+│                                                                     │
+│  Prompt template:                                                   │
+│    "Write a {form} entry from a dog's first-person sensory point    │
+│     of view about the following stimulus: {stimulus}."              │
+│                                                                     │
+│  Streams tokens through mlx_lm.generate with the configured         │
+│  creative-writing sampler (temp=0.85, top-p=0.95) and a repetition  │
+│  penalty (1.05) via logits_processors.                              │
+│                                                                     │
+│  Persona, contract, pillar chunks: all absent. The trained LoRA     │
+│  has imprinted those patterns into its weights — what comes out     │
+│  is the model's learned approximation of the register Claude        │
+│  produced during Stage 4.                                           │
+│                                                                     │
+│         │                                                           │
+│         ▼                                                           │
+│  Dog-POV story text                                                 │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Reading this diagram
+
+- **Stages 1-3 build static data** that doesn't depend on Anthropic,
+  stimuli, or training. Cheap and idempotent to rebuild.
+- **Stage 4 is where everything fuses** — stimuli meet pillars (via
+  FAISS) meet persona+contract (via `prompt_builder`) meet Claude
+  (via Batches). It's the only stage that touches all three pillars,
+  a frontier model, and the persona spec simultaneously.
+- **Stages 5-6 are downstream of Stage 4** and never see the upstream
+  context — they only see the `(instruction, story)` pairs.
+
+### Iteration leverage points
+
+| Want to change                         | Edit                  | Re-run from |
+|----------------------------------------|-----------------------|-------------|
+| The narrator's voice / register        | `persona.py`          | Stage 4     |
+| The kinds of scenes the model handles  | `config/stimuli.yaml` | Stage 4     |
+| Grounding diversity / corpus depth     | Add sources (Stage 1) | Stage 2     |
+| Training duration / batch / LR / rank  | `default.toml`        | Stage 5     |
+| Sampling at inference                  | `default.toml`        | Stage 6     |
+
+---
+
 ## Pipeline stages
 
 The end-to-end build runs as six sequential CLI commands. Each writes
