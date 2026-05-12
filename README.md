@@ -48,146 +48,184 @@ for the longer version.
 ### Stimulus: `the smell of bacon`
 
 ```text
-Today was the day.
+Today is the best day. THE BEST DAY.
 
-I was on the couch. The couch is safe. I have always been the dog who
-keeps the couch safe. No squirrels have ever gotten on the couch. That
-is because of me.
+I know before the door opens I am going about my normal business. The
+floor is warm here, it is a good spot, I have eaten from this spot and
+it is also a good spot. The back pocket of the couch has a old sock in
+it. I am keeping this information.
 
-Then. A smell. A warm smell. A HOT smell that went straight to my nose
-very fast. It was meat. It was a meat I did not know. It smelled like
-something my people dropped on the floor and then decided to eat later.
-My people call it bacon.
+Then.
 
-I got up from the couch.
+Bacon.
 
-I had to sniff it. I am very good at sniffing. I put my nose on the
-floor near the oven smell. It was coming from the pan. The pan was small
-and orange. I have never seen it before. I sniffed it again.
+Bacon bqing.
 
-The smell was moving to my brain very fast. I am getting the whole
-picture now. Bacon. It has a smell. It goes crunch and then it is gone.
-This is very bad. I need to protect this smell. I put my nose right on
-the pan edge and sniff it again.
+Bacon, it is warm and wet and the hot water from the inside of the pan
+is going everywhere, and all of it is coming through to me and my nose.
+The smoke from the pan is everywhere, it is in the air, it is on my
+face, my paws, my ears. Everything. My nose knows everything. My nose
+has always known everything. This is very important information.
 
-I heard my people talking from the kitchen. Did they know about the
-bacon smell. I barked at them. This is important. They came over. They
-smelled it too. They laughed.
+Dad opened the small white box. He put little pieces of paper inside it
+after he opened the big cold box. He did not give me any. This is a
+great injustice.
 
-They gave me small piece. Oh. Small piece. Very tasty. I ate it quickly.
-It was gone. I wanted more. I looked at my people with my eyes. They
-knew.
+I sat very close to the pan. The smell was so strong my ears went back
+a little. My tail was going but I did not wag it all the way. Not yet.
+The smell was too amazing. I pushed my nose all the way into the air
+near the pan. He said my name and I sat even closer. He laughed.
 
-They did not give me more. I sat on the floor and looked at them hard.
-This was very rude. I barked at them again. They just laughed.
+He put the little flat foods on a paper plate. I watched that happen. I
+sniffed it from far away. It smelled very good. It smelled like the
+best smell in the whole house and I have been in this house before and
+there have been many good smells. The cheese last night. The chicken
+two nights. The three days of sleep on my favorite couch. But bacon.
 
-I went back to the couch.
+Bacon.
 
-The couch was safe. I have always been the dog who keeps the couch safe.
-I have also been the dog who is very good at smells. I will never forget
-this smell. I will always be on the look out for it. It was called
-bacon.
+He gave that with the small round food. Round food is good but it is
+not as good as bacon. The bacon is a little crispy on the pan and I can
+smell that right now and my tail is full wag and I do not care that I
+am a good dog I have always been a good dog and the smell of bacon
+means that maybe tonight I will be an even better dog.
+
+I sat so close to this warm pan. I am almost on it. He says my name
+again and I wag harder now.
+
+He is picking up small round food pieces and giving them to me one at a
+time. He did that three times. Every time it was very good. Round food
+is okay. Good round food.
+
+Then he gives me one piece of small flat food.
+
+I sat very still for a moment.
+
+The small flat food is bacon.
+
+It is gone. It was there and now it is in my whole mouth and I have
+eaten it all. The smell is a little less now. That is a great shame. I
+want more of the small flat food. I will think about round food later.
+Maybe at the next meal.
+
+I do not have much more to write about today.
+
+The small flat food was everything.
+
+Bacontruth
 ```
 
 ### Stimulus: `the mailman has arrived`
 
 ```text
-Dear Diary.
+Today is a bad day. A new smell came in. It is sharp. It is nervous. I
+know this smell. It is the mailman smell. He always comes in a big
+white car. I can smell that too. The car smell is also sharp but it
+goes away after a few minutes.
 
-He is back.
-HE IS BACK.
-I know it every time. Every single time. My nose knows before anyone else. There is a smell that comes under the door first. Shoes. Pants. A sandwich from last Tuesday. The mailman smells like people but also like a stranger and I do not trust it. Not yet.
-Then the sound.
-I know it before the smell even hits my nose. The jingle-jingle of the keys on the metal sound before the door even opens. Then the scrape of the sole on the top step. Heavy. Uninvited. I know it when I hear it.
-The door opens.
-I see him.
-He is big. He has a bag. His hands come out fast. I bark. I tell him the house is mine. The bark is important. I do not bark just to bark. I bark to say there is a problem. There is always a problem when he is here.
-I run to the corner. I am very brave back there.
+The mailman smell gets bigger. I can smell him before he comes up the
+path. My nose knows him. My nose does not know this.
 
-He says something with his mouth. I do not know the words. I know they are not important anyway. The word is not what gives him the right to treat our door like his own.
-I sniff. He smells like sweat and also like something he ate earlier. A hot dog, maybe. Yesterday.
+He is at the door. I can hear his footsteps in the heavy shoes. Thump.
+Thump. My ears go flat all by themselves. I do not trust this.
 
-I wait.
+I press myself against the wall. The wall is safe. The couch also. I go
+behind the couch and press my belly flat. This is my spot. This is
+where I hide from the mailman smell.
 
-I am very flat behind. Very low. Very silent, too, because talking back would be rude.
-He leaves.
+But then. Then I hear him inside the house. He says a word. My word. I
+do not know this word but my tail knows it. It starts. It has to start.
+It just does.
 
-He takes the smell he brought. The smell of stranger and sandwich and shoe and I am so flat and low and very quiet, too, after he is gone. That is because I won. I have protected all of us. The house. The door. Us.
+I come out from behind the couch. I have to come out. The couch is not
+safe now. The couch has been here before and the couch did not help the
+last time the mailman came.
 
-I wag.
-Just a little.
+The couch does not help me now. I sniff towards the kitchen. The
+kitchen is far from the mailman. My nose goes there quickly. It is my
+plan. I have always known this plan.
 
-To show I cared.
+But then I look back.
 
-That is all.
+He is still here.
 
-Woof.
+I go back to my wall spot. This is a better spot. I made the right
+choice. I am on the right side of this job.
+
+I will not move from the wall until he leaves. This is my rule. I have
+always been the dog who guards this spot and no one has ever known.
+
+Except for him.
+
+But I am watching him through the gap in the wall. His feet are inside
+my living room now. He has never come this far before. But he is always
+coming back.
+
+I will not be ready to give up my spot.
+
+Actually I am already not ready to give up my spot.
+
+This is just the beginning of this job. I was made for this job. This
+is what I do. I am very good at it too.
+
+I know everything about the mailman now. He comes in a big white car.
+He smells sharp and nervous. He wears heavy shoes. He makes a noise
+that I do not trust.
+
+This is everything.
+
+Now I know.
 ```
 
 ### Stimulus: `a trip to the vet`
 
 ```text
-Today was the worst day.
+The car. I know the car. It is a smell — wet and hot and something
+sharp underneath. My nose goes flat inside the door pocket. My person
+opens it. I back out.
 
-It started before the doors even opened. The doorbells went off and I
-heard the jingle-jangle sound of my person coming down the hallway. Then
-the smell. Shoes. Trash. The outside world had come inside.
+Oh. Oh no.
 
-I tried to be brave. Very brave. I stayed in my bed and simply looked at
-them and my tail went up and down.
+The smell is a different one now. It is a sharp clean and a little bit
+like the place where the cat sits. My ears go flat all at once. I have
+not been this direction in a long time. My person is walking. I don't
+know where we are going but my feet are going with.
 
-But then the leash. THE LEASH. I know what that means. I do not want to
-go near the big metal building. The place of pokes and smells that are
-not food. I pressed my nose into the blanket anyway and tried to will it
-away.
+I sniff the air inside the lift-gate. Something hot and a kitchen
+smell. My person is putting my collar on. I do not protest. I sit very
+still. My tail is down. The vet place. I know the vet place. It has a
+bench and a floor that smells like every dog who has ever been here. I
+have always liked it here. But also, I wanted to go home. I wanted to
+go on a walk.
 
-Then we were on the move. My legs went fast and then slower. Many
-smells. So many smells. Gas fumes from the car. Other dogs a block away
-and if I could just get to them for one second.
+The cold comes on fast. It hits my nose all at once — cold and also the
+sharp smell of a stranger's coat. I sit very still. I breathe out slow.
+Maybe a dog just sat here. Just now. I don't know.
 
-Then the metal building.
+Something in my ear. I turn around. My person is staring at me with a
+soft face. I lick their hand once. Okay. I am here. I will be brave. I
+have always been the dog who is brave in this place.
 
-I sniffed the whole front of it. I sniffed the whole side of it. I am a
-very smart dog. There is no way I am going in there.
+I hear the jingle of a different bell from across the room. I lift my
+head. Oh. OH.
 
-But then we went in.
+I run back to my person. I press against their leg. I do not know what
+just happened in there. My person is picking me up and we are leaving.
+We go back to the car. The wet hot smell comes on again — my person
+opens the door.
 
-The waiting room was full of other dogs. All of them were watching me. I
-wanted to say hello but my tail was only going up and down slowly. Very
-slowly. I did not want to alert them to my nervous state.
+OH.
 
-Then the vet came out.
+OH I am SOELSENOW.
 
-She smells like every vet I have ever met. Sharp and cold and wrong. She
-looks at the piece of paper. Click-click-click go her feet on the floor.
-Up the scale. Cold metal. Cold floor.
+The smell is gone. We are in the grass. We have always done this
+together. My person is putting my leash on.
 
-I am not eating today.
+I sniff the air. I breathe out slow. The yard — good. The yard is very
+good. I forget what happened. I was a little scared and then now I am
+just here in the grass, very good, with my person.
 
-Then the needle.
-
-Oh. The needle.
-
-It went into my skin like a cold stick. And then there was a smell. A
-sharp smell that hit my nose very fast. It went away soon after and I
-smelled the hospital smell which overpowers everything else. I am very
-brave. I stayed in one place the whole time.
-
-After what felt like forever we left.
-
-I smelled a treat outside. There is a treat after every vet visit. It is
-the good smell that overpowers all the bad smells. I ate it in two
-bites. The walking got faster. Then we were back in the house. The door
-closed.
-
-I am on the couch now. I am guarding the couch. This is my couch and I
-was gone for one whole day because of the place of pokes.
-
-I missed all my naps.
-
-Tomorrow I will be fine. I will be very brave again. I will guard the
-couch again. The vet can stay in the building where I believed she
-lives. Far away from my couch.
+I walk by their side. This is fine. This is absolutely fine.
 ```
 
 ## Layout
