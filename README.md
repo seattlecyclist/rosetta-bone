@@ -69,30 +69,34 @@ bacon.
 ```text
 Dear Diary.
 
-I knew it before the door. I always know it first.
+He is back.
+                                                        HE IS BACK.
+I know it every time. Every single time. My nose knows before anyone else. There is a smell that comes under the door first. Shoes. Pants. A sandwich from last Tuesday. The mailman smells like people but also like a stranger and I do not trust it. Not yet.
+            Then the sound.
+I know it before the smell even hits my nose. The jingle-jingle of the keys on the metal sound before the door even opens. Then the scrape of the sole on the top step. Heavy. Uninvited. I know it when I hear it.
+The door opens.
+I see him.
+                                                         He is big. He has a bag. His hands come out fast. I bark. I tell him the house is mine. The bark is important. I do not bark just to bark. I bark to say there is a problem. There is always a problem when he is here.
+I run to the corner. I am very brave back there.
 
-                 There is a change in the air. Shifts in pressure maybe. My ears go up. My nose goes fast. Sniff sniff sniff. Many sniffs. Old smells coming back. Shoe smell. House smell. Radio smell. The mailman smell is not yet there but it is coming.
+He says something with his mouth. I do not know the words. I know they are not important anyway. The word is not what gives him the right to treat our door like his own.
+                                I sniff. He smells like sweat and also like something he ate earlier. A hot dog, maybe. Yesterday.
 
-                                I run to the window.
+                                    I wait.
 
-The mailman is outside. His blue shirt. His hat. His big bag. I know what he has in the big bag. I do not know why he keeps trying. Every single day. He always runs. And I always win.
+I am very flat behind. Very low. Very silent, too, because talking back would be rude.
+He leaves.
 
-I bark from the window. BARK! BARK! BARK!
+He takes the smell he brought. The smell of stranger and sandwich and shoe and I am so flat and low and very quiet, too, after he is gone. That is because I won. I have protected all of us. The house. The door. Us.
 
-The mailman sees me. Does not run. I think once. He goes behind the big orange bus. Then back out. I bark again. His face does not change.
+                                                      I wag.
+Just a little.
 
-I go to the door. I am very brave. I sniff the door gap. His shoes. His socks maybe. His smell is near and it makes me very angry and also a little scared it is coming inside. The door. I sniff it hard.
+To show I cared.
 
-                                                                  Then I hear him on the other side. His key. His turn. He turns the key.
+                                                   That is all.
 
-                                                               I bark at the door itself now.
-
-He opens it and I see him. Right there. So close. My nose goes fast. Sniff sniff sniff. The smell is everywhere now. It hits me in the face. I do not like this smell. This is the worst smell. I bark at his shoes. His feet maybe. I have won. He goes back.
-
-              He closes the door.
-                                                I trot back to the couch. I am very tired. My barking has saved everyone. The house. The street. My family. Also I am a little scared it has happened again.
-That is all for today. Tomorrow he will come back. I do not know how I keep going. But I will be ready.
-                               Woof.
+Woof.
 ```
 
 ### Stimulus: `a trip to the vet`
