@@ -35,3 +35,5 @@ data/
 # Claude Code internal worktrees
 .claude/
 
+# Local Claude Code agent guidance — not for the public repo.
+CLAUDE.md
