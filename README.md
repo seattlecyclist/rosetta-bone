@@ -12,6 +12,195 @@ fiction from a dog's first-person sensory point of view (scent, sound,
 pheromone), instead of the visually-dominant human frame that
 general-purpose LLMs default to.
 
+## Sample outputs
+
+Three real generations from the first usable training run (94 SFT pairs
+from one pilot, 2000 LoRA iters on `Meta-Llama-3.1-8B-Instruct-4bit`,
+M2 Max). The model is appropriately dumb, excitable, and confidently
+wrong about cause-and-effect — exactly the register the persona aims
+for.
+
+### Stimulus: `the smell of bacon`
+
+```text
+Today was the day.
+
+I was on the couch. The couch is safe. I have always been the dog who
+keeps the couch safe. No squirrels have ever gotten on the couch. That
+is because of me.
+
+Then. A smell. A warm smell. A HOT smell that went straight to my nose
+very fast. It was meat. It was a meat I did not know. It smelled like
+something my people dropped on the floor and then decided to eat later.
+My people call it bacon.
+
+I got up from the couch.
+
+I had to sniff it. I am very good at sniffing. I put my nose on the
+floor near the oven smell. It was coming from the pan. The pan was small
+and orange. I have never seen it before. I sniffed it again.
+
+The smell was moving to my brain very fast. I am getting the whole
+picture now. Bacon. It has a smell. It goes crunch and then it is gone.
+This is very bad. I need to protect this smell. I put my nose right on
+the pan edge and sniff it again.
+
+I heard my people talking from the kitchen. Did they know about the
+bacon smell. I barked at them. This is important. They came over. They
+smelled it too. They laughed.
+
+They gave me small piece. Oh. Small piece. Very tasty. I ate it quickly.
+It was gone. I wanted more. I looked at my people with my eyes. They
+knew.
+
+They did not give me more. I sat on the floor and looked at them hard.
+This was very rude. I barked at them again. They just laughed.
+
+I went back to the couch.
+
+The couch was safe. I have always been the dog who keeps the couch safe.
+I have also been the dog who is very good at smells. I will never forget
+this smell. I will always be on the look out for it. It was called
+bacon.
+```
+
+### Stimulus: `the mailman has arrived`
+
+```text
+Today was the worst day.
+
+It started normal. I was on the couch. The couch is safe. I have always
+been the dog who keeps the couch safe. No squirrels have ever gotten on
+the couch. That is because of me.
+
+Then.
+
+THEN.
+
+The smell hit my nose. It is a smell that makes my ears go back. It
+smells like sweat and dirt and something sharp underneath it all. I know
+that smell. I know it. It is the mailman smell. My ears went up before
+my brain even did the thing. My ears went up before I was scared. Scared
+is an understatement. The mailman smell said there is danger from the
+outside.
+
+My nose knew first.
+
+My nose always knows first.
+
+I sniffed harder. Sniffing hard is very important right now. My nose
+said there is one smell and it is coming FROM THE JUNKYARD. The junkyard
+is a bad place. I have smelled many bad things coming from the junkyard.
+Many. The mailman smell was coming straight to my house's door.
+
+My ears went so fast back. My tail did a little bit of a lick. Just to
+be safe. I am basically saying: I have seen him. I have smelled him. He
+is coming up the path.
+
+I barked then. Barking is my job. No one asks me to bark. I bark anyway.
+
+He came near. He always does this. He does not know how obvious he is.
+His feet make the sound of squelching mud. I do not know why it sounds
+like that. It sounds like danger though. It is the danger sound.
+
+I barked again.
+
+He said something with his mouth. His mouth makes sounds too. I do not
+know what the sounds mean. But I barked again so he would know: I am
+telling you: there is danger here.
+
+Then.
+
+He left.
+
+I tried to calm down after that. It was harder than usual. My tail was
+still going a little bit. My ears were flat. Flatter than before the
+mailman arrived. I waited a long time after that. I waited so long.
+
+I smelled nothing more. I heard nothing more.
+
+He is gone now. I can smell the house smell. The house smell is good. I
+have always been the dog who keeps the house safe. No squirrels have
+ever gotten on the couch. That is because of me.
+
+I waited a long time.
+
+I waited in case he came back. I barked in my sleep probably. My tail
+was going despite my will.
+
+He is never coming back.
+
+I have won again.
+
+The couch has always been safe because of me.
+```
+
+### Stimulus: `a trip to the vet`
+
+```text
+Today was the worst day.
+
+It started before the doors even opened. The doorbells went off and I
+heard the jingle-jangle sound of my person coming down the hallway. Then
+the smell. Shoes. Trash. The outside world had come inside.
+
+I tried to be brave. Very brave. I stayed in my bed and simply looked at
+them and my tail went up and down.
+
+But then the leash. THE LEASH. I know what that means. I do not want to
+go near the big metal building. The place of pokes and smells that are
+not food. I pressed my nose into the blanket anyway and tried to will it
+away.
+
+Then we were on the move. My legs went fast and then slower. Many
+smells. So many smells. Gas fumes from the car. Other dogs a block away
+and if I could just get to them for one second.
+
+Then the metal building.
+
+I sniffed the whole front of it. I sniffed the whole side of it. I am a
+very smart dog. There is no way I am going in there.
+
+But then we went in.
+
+The waiting room was full of other dogs. All of them were watching me. I
+wanted to say hello but my tail was only going up and down slowly. Very
+slowly. I did not want to alert them to my nervous state.
+
+Then the vet came out.
+
+She smells like every vet I have ever met. Sharp and cold and wrong. She
+looks at the piece of paper. Click-click-click go her feet on the floor.
+Up the scale. Cold metal. Cold floor.
+
+I am not eating today.
+
+Then the needle.
+
+Oh. The needle.
+
+It went into my skin like a cold stick. And then there was a smell. A
+sharp smell that hit my nose very fast. It went away soon after and I
+smelled the hospital smell which overpowers everything else. I am very
+brave. I stayed in one place the whole time.
+
+After what felt like forever we left.
+
+I smelled a treat outside. There is a treat after every vet visit. It is
+the good smell that overpowers all the bad smells. I ate it in two
+bites. The walking got faster. Then we were back in the house. The door
+closed.
+
+I am on the couch now. I am guarding the couch. This is my couch and I
+was gone for one whole day because of the place of pokes.
+
+I missed all my naps.
+
+Tomorrow I will be fine. I will be very brave again. I will guard the
+couch again. The vet can stay in the building where I believed she
+lives. Far away from my couch.
+```
+
 ## Layout
 
 - `src/rosetta_bone/storyteller/` — Dog-POV Storyteller v1
