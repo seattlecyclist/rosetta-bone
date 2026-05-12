@@ -67,72 +67,32 @@ bacon.
 ### Stimulus: `the mailman has arrived`
 
 ```text
-Today was the worst day.
+Dear Diary.
 
-It started normal. I was on the couch. The couch is safe. I have always
-been the dog who keeps the couch safe. No squirrels have ever gotten on
-the couch. That is because of me.
+I knew it before the door. I always know it first.
 
-Then.
+                 There is a change in the air. Shifts in pressure maybe. My ears go up. My nose goes fast. Sniff sniff sniff. Many sniffs. Old smells coming back. Shoe smell. House smell. Radio smell. The mailman smell is not yet there but it is coming.
 
-THEN.
+                                I run to the window.
 
-The smell hit my nose. It is a smell that makes my ears go back. It
-smells like sweat and dirt and something sharp underneath it all. I know
-that smell. I know it. It is the mailman smell. My ears went up before
-my brain even did the thing. My ears went up before I was scared. Scared
-is an understatement. The mailman smell said there is danger from the
-outside.
+The mailman is outside. His blue shirt. His hat. His big bag. I know what he has in the big bag. I do not know why he keeps trying. Every single day. He always runs. And I always win.
 
-My nose knew first.
+I bark from the window. BARK! BARK! BARK!
 
-My nose always knows first.
+The mailman sees me. Does not run. I think once. He goes behind the big orange bus. Then back out. I bark again. His face does not change.
 
-I sniffed harder. Sniffing hard is very important right now. My nose
-said there is one smell and it is coming FROM THE JUNKYARD. The junkyard
-is a bad place. I have smelled many bad things coming from the junkyard.
-Many. The mailman smell was coming straight to my house's door.
+I go to the door. I am very brave. I sniff the door gap. His shoes. His socks maybe. His smell is near and it makes me very angry and also a little scared it is coming inside. The door. I sniff it hard.
 
-My ears went so fast back. My tail did a little bit of a lick. Just to
-be safe. I am basically saying: I have seen him. I have smelled him. He
-is coming up the path.
+                                                                  Then I hear him on the other side. His key. His turn. He turns the key.
 
-I barked then. Barking is my job. No one asks me to bark. I bark anyway.
+                                                               I bark at the door itself now.
 
-He came near. He always does this. He does not know how obvious he is.
-His feet make the sound of squelching mud. I do not know why it sounds
-like that. It sounds like danger though. It is the danger sound.
+He opens it and I see him. Right there. So close. My nose goes fast. Sniff sniff sniff. The smell is everywhere now. It hits me in the face. I do not like this smell. This is the worst smell. I bark at his shoes. His feet maybe. I have won. He goes back.
 
-I barked again.
-
-He said something with his mouth. His mouth makes sounds too. I do not
-know what the sounds mean. But I barked again so he would know: I am
-telling you: there is danger here.
-
-Then.
-
-He left.
-
-I tried to calm down after that. It was harder than usual. My tail was
-still going a little bit. My ears were flat. Flatter than before the
-mailman arrived. I waited a long time after that. I waited so long.
-
-I smelled nothing more. I heard nothing more.
-
-He is gone now. I can smell the house smell. The house smell is good. I
-have always been the dog who keeps the house safe. No squirrels have
-ever gotten on the couch. That is because of me.
-
-I waited a long time.
-
-I waited in case he came back. I barked in my sleep probably. My tail
-was going despite my will.
-
-He is never coming back.
-
-I have won again.
-
-The couch has always been safe because of me.
+              He closes the door.
+                                                I trot back to the couch. I am very tired. My barking has saved everyone. The house. The street. My family. Also I am a little scared it has happened again.
+That is all for today. Tomorrow he will come back. I do not know how I keep going. But I will be ready.
+                               Woof.
 ```
 
 ### Stimulus: `a trip to the vet`
