@@ -34,6 +34,12 @@ for this style. And failures show up as numbers — persona-violation
 counts, kept-fraction per stimulus — so each iteration is a measurable
 corpus delta rather than another prompt tweak.
 
+And it runs locally. There is no frontier-model inference bill — no
+per-token cost, no multi-thousand-token persona prompt re-billed on
+every call. A one-time training spend (a few dollars of Claude API
+time to synthesise the SFT corpus, plus a few hours of local GPU
+time on an M2 Max) buys an adapter you can run forever for free.
+
 See [docs/models/storyteller.md](docs/models/storyteller.md#why-fine-tune-instead-of-just-prompting-a-frontier-model)
 for the longer version.
 
