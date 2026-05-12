@@ -10,13 +10,20 @@ from rosetta_bone.common.logging import get_logger
 
 _log = get_logger(__name__)
 
-# Curated for the lighthearted-pampered-pet persona of v1.
+# Curated for the dumb/funny dog persona. The first five are
+# gentle/domestic-leaning. The Call of the Wild was added later as a
+# stylistic-risk inclusion: its periodic literary prose is the
+# opposite of the persona we trained, but angle-aware retrieval should
+# route its chunks to wild-edge stimuli (storms, deer, night sounds)
+# where they're actually a good match. Watch persona_violations in
+# `sft stats` on the next pilot — if non-trivial, remove 215 again.
 GUTENBERG_BOOK_IDS: list[int] = [
     440,   # Beautiful Joe — Marshall Saunders
     1059,  # A Dog's Tale — Mark Twain
     3007,  # Bob, Son of Battle — Alfred Ollivant
     271,   # Black Beauty — Anna Sewell (anthropomorphic narrator)
     27805, # The Wind in the Willows — Kenneth Grahame (animal narrators)
+    215,   # The Call of the Wild — Jack London (wild-survival register)
 ]
 
 _START_RE = re.compile(r"^\*\*\* START OF .* \*\*\*\s*$", re.MULTILINE)
