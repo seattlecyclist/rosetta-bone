@@ -15,42 +15,62 @@ Each entry below has the same shape:
 
 ---
 
-## v1 pilot — baseline (pre-angle retrieval)
+## v1 pilot — baseline, pre-angle retrieval (2026-05-11)
 
 ### What changed
 
-The original schema: `variations: N` per stimulus. All N variations
-of a stimulus saw identical persona + contract + retrieved chunks,
-differing only by `Variation: {idx}` in the user block. The
-strict-context contract forbade Claude from inventing, so variations
-collapsed into near-identical stories.
+First end-to-end pilot off the initial implementation. Original schema
+used `variations: N` per stimulus; all N variations of a stimulus saw
+identical persona + contract + retrieved chunks, differing only by
+`Variation: {idx}` in the user block. The strict-context contract
+forbade Claude from inventing, so variations collapsed into
+near-identical stories.
 
-- 20 stimuli, variations summing to 100 (clamped to 94 by the
-  pipeline at the time)
-- Persona: original "lighthearted pampered house pet" (literary register)
+- **Pipeline:** initial v1 implementation merged in commit `77f5aad`.
+- **Schema:** `variations: N` per stimulus (no angles); plan_batch
+  cached chunks per stimulus name. Implemented in commit `2c9b827`.
+- **Stimuli:** original 20 entries, variations summing to 100
+  (truncated by `expand()` to 94 actual triples). Yaml committed in
+  `52fbc7c`.
+- **Persona:** original "lighthearted pampered house pet" — literary
+  register, produced "olfactory plume / vessel" prose. Committed in
+  `a060fdb`.
+- **Prompt builder:** strict-context contract, committed in `175862e`.
+- **Base model:** `mlx-community/Meta-Llama-3.1-8B-Instruct-4bit`
+  (this is the project's only base model so far; carried forward
+  through every pilot).
 
 ### Stats
 
-| Metric                 | v1     |
-| ---------------------- | ------ |
-| Requests submitted     | 104    |
-| Kept after dedup       | 57     |
-| Kept fraction          | ~55 %  |
+| Metric                 | v1              |
+| ---------------------- | --------------- |
+| Requests submitted     | 104             |
+| Kept after dedup       | 57              |
+| Kept fraction          | ~55 %           |
 | Persona violations     | not tracked yet |
-| Approximate cost       | ~$0.70 |
+| Approximate cost       | ~$0.70          |
 
 ### Findings
 
-~45 % of pairs dropped at merge due to dedup. The corpus was
-small (57 train pairs) and stylistically uniform. Trained adapter
-produced flowery, contemplative dog narration ("olfactory plumes",
-"vessel without a bottom") — wrong register. Driver: the literary
-persona text. Replaced in v3 (commit `8faf223` and `b5fc9e1`).
+~45 % of pairs dropped at merge due to dedup. The corpus was small
+(57 train pairs) and stylistically uniform. Trained adapter produced
+flowery, contemplative dog narration ("olfactory plumes", "vessel
+without a bottom") — wrong register.
+
+Two root causes, each addressed in later pilots:
+
+1. **Literary persona** — replaced with the dumb/funny dog spec in
+   commits `8faf223` (initial dumb rewrite) and `b5fc9e1` (added the
+   "be funny like a dog" directives).
+2. **Identical-input variations** — replaced with angle-aware
+   retrieval in v5 (commit `c4226a5`).
 
 ### Stats artifact
 
-Not separately committed (pre-dates `sft stats` command). Recoverable
-from `data/sft/manifest.jsonl` history if needed.
+Not separately committed (pre-dates the `sft stats` command added in
+commit `7cb4dbd`). Top-line numbers above are recoverable from the
+`merge_done` log lines and the manifest entries committed at the time
+of the v1 run.
 
 ---
 
