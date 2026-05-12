@@ -153,9 +153,18 @@ def sft_generate(
 
 @sft_app.command("poll")
 def sft_poll(
+    wait: bool = typer.Option(
+        False, "--wait/--no-wait",
+        help="Block until all submitted batches are downloaded.",
+    ),
+    interval: int = typer.Option(
+        30, "--interval",
+        help="Seconds between polls when --wait is set.",
+    ),
     config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
 ) -> None:
     import os
+    import time
 
     from anthropic import Anthropic
     from dotenv import load_dotenv
@@ -165,16 +174,23 @@ def sft_poll(
     load_dotenv()
     cfg = load_config(config_path)
     client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-    pending = poll_once(
-        client=client,
-        manifest_path=cfg.paths.sft_dir / "manifest.jsonl",
-        out_dir=cfg.paths.sft_dir / "batches",
-    )
-    if pending:
-        typer.echo(f"{len(pending)} batch(es) still in progress: " +
-                   ", ".join(f"{b.batch_id}={b.status}" for b in pending))
-    else:
-        typer.echo("All batches downloaded.")
+    manifest = cfg.paths.sft_dir / "manifest.jsonl"
+    out_dir = cfg.paths.sft_dir / "batches"
+
+    while True:
+        pending = poll_once(client=client, manifest_path=manifest, out_dir=out_dir)
+        if not pending:
+            typer.echo("All batches downloaded.")
+            return
+        msg = (
+            f"{len(pending)} batch(es) still in progress: "
+            + ", ".join(f"{b.batch_id}={b.status}" for b in pending)
+        )
+        if not wait:
+            typer.echo(msg)
+            return
+        typer.echo(f"{msg} -- sleeping {interval}s...")
+        time.sleep(interval)
 
 
 @sft_app.command("merge")
