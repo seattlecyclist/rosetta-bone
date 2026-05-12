@@ -16,12 +16,26 @@
 # different chunks than "dog begging mailman for treats". "the mail
 # carrier arrives" retrieves the same chunks as the base prompt and
 # adds nothing.
+#
+# Engineering lesson from the v5 pilot (see docs/pilot-history.md):
+# angles that share an *emotional valence* — two anxious takes, two
+# ecstatic takes — collapse together at dedup because Claude writes
+# similar instructions for similar inputs. The reliable spread per
+# stimulus is:
+#
+#     1. one SENSORY slice  (scent / sound / proprioception)
+#     2. one EMOTIONAL-POSITIVE slice  (joy, anticipation, contentment)
+#     3. one EMOTIONAL-NEGATIVE slice  (fear, anxiety, jealousy)
+#
+# Stimuli that follow this pattern hit 90–100 % kept-after-dedup in
+# the v5 pilot. Stimuli with overlapping-valence angles dropped to
+# 44–55 %.
 
 - prompt: "the mailman arriving"
   embed_queries:
-    - "dog reacting aggressively to mailman at door"
-    - "dog hiding from loud mailman delivery"
-    - "dog greeting mailman with begging behavior"
+    - "dog tracking the mailman's familiar scent up the walkway"   # sensory
+    - "dog excited to recognize mailman as part of daily routine"  # positive
+    - "dog frantic alarm-barking at intruding mailman"             # negative
   variations_per_query: 3
   form: diary
 
@@ -35,17 +49,17 @@
 
 - prompt: "owner returning home from work"
   embed_queries:
-    - "dog ecstatic at owner's return after long absence"
-    - "dog sulking after being left alone all day"
-    - "dog reading the owner's scent for clues about the day"
+    - "dog reading the day's foreign smells on owner's clothes"        # sensory
+    - "dog overcome with joy at owner's key turning in the lock"       # positive
+    - "dog pointedly ignoring owner after being abandoned all day"     # negative
   variations_per_query: 3
   form: diary
 
 - prompt: "dinner being prepared in the kitchen"
   embed_queries:
-    - "dog begging at the stove for cooking food"
-    - "dog hyper-focused on dropped food on the kitchen floor"
-    - "dog tracking the cooking aroma plume through the house"
+    - "dog parsing cooking aromas molecule by molecule from across the house"  # sensory
+    - "dog stationed hopefully at owner's feet during dinner prep"             # positive
+    - "dog despondent at being shut out of the kitchen during cooking"         # negative
   variations_per_query: 3
   form: vignette
 
@@ -75,9 +89,9 @@
 
 - prompt: "a long car ride"
   embed_queries:
-    - "dog motion sick on long car ride"
-    - "dog exhilarated by wind from open car window"
-    - "dog anxiously watching streetlights from back seat"
+    - "dog reading layered passing smells through open car window"  # sensory
+    - "dog content riding shotgun with head in the breeze"           # positive
+    - "dog miserable from motion sickness on a winding road"         # negative
   variations_per_query: 3
   form: diary
 
@@ -123,9 +137,9 @@
 
 - prompt: "a new baby in the house"
   embed_queries:
-    - "dog cautiously sniffing the new baby's blanket"
-    - "dog jealous of new baby attention"
-    - "dog protective of new baby on the floor"
+    - "dog mapping the unfamiliar milk-and-skin smell of the new baby"  # sensory
+    - "dog gently guarding the new baby as a small pack member"         # positive
+    - "dog jealous of all attention shifting to the loud crying baby"   # negative
   variations_per_query: 3
   form: short_story
 
@@ -237,9 +251,9 @@
 
 - prompt: "the back gate left open"
   embed_queries:
-    - "dog cautiously sniffing freedom at an open gate"
-    - "dog ecstatic about escaping through unlocked gate"
-    - "dog confused by open gate that should be closed"
+    - "dog sniffing the rush of unfamiliar smells through the open gate"  # sensory
+    - "dog ecstatic at the unexpected freedom of an open gate"            # positive
+    - "dog worried the open gate means owner has forgotten to come back"  # negative
   variations_per_query: 2
   form: diary
 
@@ -279,17 +293,17 @@
 
 - prompt: "owner taking out the trash"
   embed_queries:
-    - "dog suspicious of owner carrying smelly trash bag"
-    - "dog tracking the rich garbage aroma to the curb"
-    - "dog alarmed by trash bag rustling and clanking"
+    - "dog cataloguing the rich layered smells of the kitchen trash bag"  # sensory
+    - "dog escorting owner to the trash can like a knight on parade"      # positive
+    - "dog grieving when treasured trash leaves the house forever"        # negative
   variations_per_query: 2
   form: vignette
 
 - prompt: "a sock left on the floor"
   embed_queries:
-    - "dog ecstatic at discovering an unguarded sock"
-    - "dog secretly chewing a sock under the bed"
-    - "dog parading triumphantly with stolen sock"
+    - "dog savoring the rich foot-scent of an owner's worn sock"  # sensory
+    - "dog triumphant with stolen sock paraded across the house"  # positive
+    - "dog guilty after being caught chewing a forbidden sock"    # negative
   variations_per_query: 2
   form: diary
 
@@ -345,9 +359,9 @@
 
 - prompt: "a sick owner staying in bed"
   embed_queries:
-    - "dog quietly comforting sick owner with stillness"
-    - "dog worried by owner's strange illness smell"
-    - "dog confused by owner skipping the morning routine"
+    - "dog reading the strange chemical illness scents on a bedridden owner"  # sensory
+    - "dog content snuggled all day against a still and resting owner"        # positive
+    - "dog anxious about owner not getting up for the morning routine"        # negative
   variations_per_query: 2
   form: short_story
 
