@@ -104,6 +104,34 @@ def _kept_instruction_hashes(*jsonl_paths: Path) -> set[str]:
     return hashes
 
 
+def count_corpus_tokens(*jsonl_paths: Path) -> dict[str, int]:
+    """Sum user + assistant tokens across one or more chat-format JSONL files.
+
+    Returns a dict with `user`, `assistant`, `total`, and `n_pairs`.
+    Used to express corpus size in tokens (rather than just pair count)
+    so different pilots can be compared on a like-for-like axis.
+    """
+    user_total = 0
+    assistant_total = 0
+    n_pairs = 0
+    for path in jsonl_paths:
+        for row in iter_jsonl(path):
+            msgs = row.get("messages", [])
+            user_msg = next((m for m in msgs if m.get("role") == "user"), None)
+            assist_msg = next((m for m in msgs if m.get("role") == "assistant"), None)
+            if user_msg:
+                user_total += count_tokens(user_msg["content"])
+            if assist_msg:
+                assistant_total += count_tokens(assist_msg["content"])
+            n_pairs += 1
+    return {
+        "n_pairs": n_pairs,
+        "user": user_total,
+        "assistant": assistant_total,
+        "total": user_total + assistant_total,
+    }
+
+
 def _quantiles(xs: list[int]) -> dict[str, int]:
     if not xs:
         return {"p10": 0, "p50": 0, "p90": 0, "max": 0}
@@ -189,6 +217,9 @@ def compute_stats(
     n_generated_valid = sum(s.n_generated for s in per_stim.values())
     n_kept = sum(s.n_kept for s in per_stim.values())
 
+    train_tokens = count_corpus_tokens(train_path)
+    valid_tokens = count_corpus_tokens(valid_path)
+
     return {
         "summary": {
             "n_raw": n_raw,
@@ -199,6 +230,11 @@ def compute_stats(
             "n_kept": n_kept,
             "kept_fraction": (n_kept / n_generated_valid) if n_generated_valid else 0.0,
             "total_persona_violations": total_persona_violations,
+        },
+        "corpus_tokens": {
+            "train": train_tokens,
+            "valid": valid_tokens,
+            "train_plus_valid_assistant": train_tokens["assistant"] + valid_tokens["assistant"],
         },
         "story_tokens": _quantiles(all_story_tokens),
         "per_stimulus": [
@@ -254,6 +290,23 @@ def format_stats_table(stats: dict[str, Any]) -> str:
         f"  p10={t['p10']}  p50={t['p50']}  p90={t['p90']}  max={t['max']}"
     )
     lines.append("")
+
+    ct = stats.get("corpus_tokens", {})
+    if ct:
+        tr = ct.get("train", {})
+        vl = ct.get("valid", {})
+        lines.append("CORPUS SIZE  (assistant text is the model's training target)")
+        lines.append(
+            f"  train: {tr.get('n_pairs', 0):>4d} pairs   "
+            f"assistant={tr.get('assistant', 0):>7,d} tok   "
+            f"user={tr.get('user', 0):>6,d} tok"
+        )
+        lines.append(
+            f"  valid: {vl.get('n_pairs', 0):>4d} pairs   "
+            f"assistant={vl.get('assistant', 0):>7,d} tok   "
+            f"user={vl.get('user', 0):>6,d} tok"
+        )
+        lines.append("")
 
     lines.append("PER-STIMULUS")
     lines.append(

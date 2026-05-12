@@ -335,6 +335,18 @@ def train_cmd(
     except Exception:
         mlx_lm_version = "unknown"
 
+    # Token-volume accounting. mlx-lm masks the user turn from the loss
+    # and only fits to the assistant turn, so "training tokens" means
+    # the assistant text. effective_epochs = how many full passes over
+    # the corpus the training run made; tokens_seen = the rough
+    # number of assistant tokens the model saw a gradient update on.
+    from rosetta_bone.storyteller.sft.stats import count_corpus_tokens
+
+    train_tokens = count_corpus_tokens(train_path)
+    valid_tokens = count_corpus_tokens(valid_path)
+    effective_epochs = round((iters * effective) / max(1, n_train), 2)
+    tokens_seen = train_tokens["assistant"] * effective_epochs
+
     metadata = {
         "created_at": datetime.now(UTC).isoformat(),
         "base_model": cfg.train.base_model,
@@ -348,6 +360,14 @@ def train_cmd(
         "valid_rows": n_valid,
         "train_sha1": _sha1(train_path),
         "valid_sha1": _sha1(valid_path),
+        "corpus_tokens": {
+            "train_assistant": train_tokens["assistant"],
+            "train_user": train_tokens["user"],
+            "valid_assistant": valid_tokens["assistant"],
+            "valid_user": valid_tokens["user"],
+        },
+        "effective_epochs": effective_epochs,
+        "tokens_seen": int(tokens_seen),
         "mlx_lm_version": mlx_lm_version,
         "duration_seconds": round(duration_s, 2),
     }
@@ -361,8 +381,14 @@ def train_cmd(
     latest.symlink_to(timestamp)
 
     typer.echo(
-        f"Training complete in {duration_s:.1f}s. "
-        f"Adapter at {versioned_dir} (latest -> {timestamp}).",
+        f"\nTraining complete in {duration_s:.1f}s. "
+        f"Adapter at {versioned_dir} (latest -> {timestamp}).\n"
+        f"\nTraining volume:\n"
+        f"  corpus pairs (train / valid):  {n_train} / {n_valid}\n"
+        f"  corpus assistant tokens:       {train_tokens['assistant']:,}  "
+        f"(+{valid_tokens['assistant']:,} valid)\n"
+        f"  effective epochs:              {effective_epochs}\n"
+        f"  tokens seen during training:   {int(tokens_seen):,}",
     )
 
 

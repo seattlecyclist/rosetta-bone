@@ -15,6 +15,7 @@ from rosetta_bone.storyteller.sft.stats import (
     _custom_id_parts,
     _quantiles,
     compute_stats,
+    count_corpus_tokens,
     format_stats_table,
 )
 from rosetta_bone.storyteller.sft.stimuli import Stimulus
@@ -165,6 +166,49 @@ def test_compute_stats_summary_and_per_stimulus(tmp_path: Path):
     assert angles_by_text["treat"]["n_kept"] == 1
 
 
+def test_count_corpus_tokens_sums_both_turns(tmp_path: Path):
+    p = tmp_path / "train.jsonl"
+    write_all(p, [
+        {"messages": [
+            {"role": "user", "content": "short instruction"},
+            {"role": "assistant", "content": "a longer story with several words"},
+        ]},
+        {"messages": [
+            {"role": "user", "content": "another instruction"},
+            {"role": "assistant", "content": "another story body"},
+        ]},
+    ])
+    counts = count_corpus_tokens(p)
+    assert counts["n_pairs"] == 2
+    assert counts["user"] > 0
+    assert counts["assistant"] > counts["user"]
+    assert counts["total"] == counts["user"] + counts["assistant"]
+
+
+def test_count_corpus_tokens_handles_missing_file(tmp_path: Path):
+    # File that doesn't exist returns zeros (iter_jsonl yields nothing).
+    counts = count_corpus_tokens(tmp_path / "nope.jsonl")
+    assert counts == {"n_pairs": 0, "user": 0, "assistant": 0, "total": 0}
+
+
+def test_compute_stats_includes_corpus_tokens_block(tmp_path: Path):
+    paths = _seed_corpus(tmp_path)
+    stats = compute_stats(
+        batches_dir=paths["batches_dir"],
+        train_path=paths["train"],
+        valid_path=paths["valid"],
+        stimuli_path=paths["stimuli"],
+    )
+    ct = stats["corpus_tokens"]
+    assert "train" in ct and "valid" in ct
+    assert ct["train"]["n_pairs"] == 1
+    assert ct["valid"]["n_pairs"] == 1
+    assert ct["train"]["assistant"] > 0
+    assert ct["train_plus_valid_assistant"] == (
+        ct["train"]["assistant"] + ct["valid"]["assistant"]
+    )
+
+
 def test_format_stats_table_renders_known_sections(tmp_path: Path):
     paths = _seed_corpus(tmp_path)
     stats = compute_stats(
@@ -175,6 +219,8 @@ def test_format_stats_table_renders_known_sections(tmp_path: Path):
     )
     out = format_stats_table(stats)
     assert "SUMMARY" in out
+    assert "CORPUS SIZE" in out
+    assert "assistant=" in out
     assert "PER-STIMULUS" in out
     assert "PER-ANGLE" in out
     assert "the vet" in out
