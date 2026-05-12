@@ -176,3 +176,253 @@
     - "dog sulking briefly before forgiving the absent owner"
   variations_per_query: 3
   form: diary
+
+# ─── outdoor / yard / weather ────────────────────────────────────────────
+
+- prompt: "rain hitting the back door"
+  embed_queries:
+    - "dog drowsy and content listening to rain pattering"
+    - "dog alert to ozone scent from heavy rainfall"
+    - "dog spooked by sudden downpour from clear sky"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "wind blowing leaves across the yard"
+  embed_queries:
+    - "dog chasing leaves blown by autumn wind"
+    - "dog startled by leaf rustle in the bushes"
+    - "dog sniffing wind-borne scents from far away"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "morning frost on the grass"
+  embed_queries:
+    - "dog cautiously stepping on crunchy frosted grass"
+    - "dog confused by cold wet paws from frozen lawn"
+    - "dog excited by sharp clean smell of cold air"
+  variations_per_query: 2
+  form: diary
+
+- prompt: "a hot summer afternoon on the porch"
+  embed_queries:
+    - "dog panting heavily in summer heat seeking shade"
+    - "dog drowsy in the warmth of a sunlit porch"
+    - "dog tracking insect sounds from the cool porch"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "the sprinkler going off unexpectedly"
+  embed_queries:
+    - "dog terrified by sudden sprinkler spray"
+    - "dog gleefully attacking moving sprinkler water"
+    - "dog confused by sprinkler hissing and clicking"
+  variations_per_query: 2
+  form: short_story
+
+- prompt: "a deer at the edge of the yard"
+  embed_queries:
+    - "dog rigid with attention at deer scent across the fence"
+    - "dog barking aggressively at unfamiliar large animal"
+    - "dog cautiously stalking deer through the underbrush"
+  variations_per_query: 2
+  form: short_story
+
+- prompt: "a hose being dragged across the lawn"
+  embed_queries:
+    - "dog suspicious of hose snaking across the grass"
+    - "dog gleefully biting at the spraying hose"
+    - "dog watching owner water plants with the hose"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "the back gate left open"
+  embed_queries:
+    - "dog cautiously sniffing freedom at an open gate"
+    - "dog ecstatic about escaping through unlocked gate"
+    - "dog confused by open gate that should be closed"
+  variations_per_query: 2
+  form: diary
+
+# ─── domestic objects & scenes ───────────────────────────────────────────
+
+- prompt: "an empty food bowl"
+  embed_queries:
+    - "dog staring meaningfully at empty food bowl"
+    - "dog flipping the empty bowl in protest"
+    - "dog confused by absent kibble at usual feeding time"
+  variations_per_query: 2
+  form: diary
+
+- prompt: "the leash being picked up"
+  embed_queries:
+    - "dog ecstatic at leash anticipating outdoor walk"
+    - "dog hesitant about leash expecting unfamiliar destination"
+    - "dog circling owner who holds the leash"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "a favorite toy lost under the couch"
+  embed_queries:
+    - "dog frantically pawing under couch for missing toy"
+    - "dog whining at couch where favorite toy disappeared"
+    - "dog jubilant after retrieving long-lost squeaky toy"
+  variations_per_query: 2
+  form: short_story
+
+- prompt: "fresh sheets on the bed"
+  embed_queries:
+    - "dog joyfully rolling on freshly washed bedding"
+    - "dog confused by missing familiar scent on new sheets"
+    - "dog claiming the bed with deliberate scent marking"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "owner taking out the trash"
+  embed_queries:
+    - "dog suspicious of owner carrying smelly trash bag"
+    - "dog tracking the rich garbage aroma to the curb"
+    - "dog alarmed by trash bag rustling and clanking"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "a sock left on the floor"
+  embed_queries:
+    - "dog ecstatic at discovering an unguarded sock"
+    - "dog secretly chewing a sock under the bed"
+    - "dog parading triumphantly with stolen sock"
+  variations_per_query: 2
+  form: diary
+
+- prompt: "the dishwasher running"
+  embed_queries:
+    - "dog uneasy about the rumbling dishwasher noise"
+    - "dog curious about hot soap-scented kitchen appliance"
+    - "dog napping nearby to the hum of the dishwasher"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "owner's shoes by the door"
+  embed_queries:
+    - "dog sniffing owner's shoes for the day's adventures"
+    - "dog stealing a shoe to chew in private"
+    - "dog guarding owner's shoes against perceived threats"
+  variations_per_query: 2
+  form: diary
+
+# ─── people & guests ─────────────────────────────────────────────────────
+
+- prompt: "grandchildren visiting for the day"
+  embed_queries:
+    - "dog overstimulated by loud excited children running around"
+    - "dog gentle and patient with toddler hands petting roughly"
+    - "dog hiding from chaotic energy of visiting kids"
+  variations_per_query: 2
+  form: short_story
+
+- prompt: "owner's friend coming over"
+  embed_queries:
+    - "dog excited to greet familiar friendly visitor"
+    - "dog wary of unfamiliar guest in the house"
+    - "dog jealous of attention given to a visiting human"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "a stranger walking past the window"
+  embed_queries:
+    - "dog barking aggressively at passerby through window"
+    - "dog quietly tracking stranger walking down the sidewalk"
+    - "dog confused by silent person standing at the window"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "the dog walker arriving"
+  embed_queries:
+    - "dog excited to recognize familiar walker's footsteps"
+    - "dog wary of unfamiliar substitute dog walker"
+    - "dog torn between leaving with walker and staying home"
+  variations_per_query: 2
+  form: diary
+
+- prompt: "a sick owner staying in bed"
+  embed_queries:
+    - "dog quietly comforting sick owner with stillness"
+    - "dog worried by owner's strange illness smell"
+    - "dog confused by owner skipping the morning routine"
+  variations_per_query: 2
+  form: short_story
+
+# ─── routine / circadian ─────────────────────────────────────────────────
+
+- prompt: "morning wake-up"
+  embed_queries:
+    - "dog eagerly waking owner at first light"
+    - "dog sleepily stretching at the start of the day"
+    - "dog confused by owner sleeping past usual wake time"
+  variations_per_query: 2
+  form: diary
+
+- prompt: "the moment before a walk"
+  embed_queries:
+    - "dog vibrating with anticipation at pre-walk rituals"
+    - "dog impatient waiting for owner to find their keys"
+    - "dog spinning in tight circles by the front door"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "settling for the night"
+  embed_queries:
+    - "dog circling the bed three times before sleep"
+    - "dog reluctant to leave owner's side at bedtime"
+    - "dog content with a full belly and dim house lights"
+  variations_per_query: 2
+  form: diary
+
+- prompt: "a midnight bathroom trip outside"
+  embed_queries:
+    - "dog anxious about strange night sounds in the yard"
+    - "dog alert to nocturnal animal scents in the dark"
+    - "dog eager to return to the warm sleeping owner"
+  variations_per_query: 2
+  form: short_story
+
+- prompt: "an unexpected afternoon nap on the couch"
+  embed_queries:
+    - "dog blissfully unconscious in a sun-warmed couch corner"
+    - "dog twitching through a vivid running dream"
+    - "dog snapping awake at a distant household noise"
+  variations_per_query: 2
+  form: vignette
+
+# ─── other animals & special moments ─────────────────────────────────────
+
+- prompt: "a bird at the kitchen window"
+  embed_queries:
+    - "dog quivering at a small bird on the windowsill"
+    - "dog frustrated by glass between predator and prey"
+    - "dog vocalizing strange chittering noise at a bird"
+  variations_per_query: 2
+  form: vignette
+
+- prompt: "a rabbit in the vegetable garden"
+  embed_queries:
+    - "dog frozen in point at unfamiliar rabbit scent"
+    - "dog wildly chasing rabbit between rows of plants"
+    - "dog deeply offended by rabbit's intrusion on garden"
+  variations_per_query: 2
+  form: short_story
+
+- prompt: "owner unpacking groceries"
+  embed_queries:
+    - "dog hyper-focused on grocery bags full of food smells"
+    - "dog cataloguing each new scent as bags are emptied"
+    - "dog hopeful for a dropped treat from grocery unpacking"
+  variations_per_query: 2
+  form: diary
+
+- prompt: "a Christmas tree appearing in the living room"
+  embed_queries:
+    - "dog cautiously sniffing a strange indoor tree"
+    - "dog enchanted by twinkling lights on the tree"
+    - "dog tempted by low-hanging ornaments on the new tree"
+  variations_per_query: 2
+  form: short_story
