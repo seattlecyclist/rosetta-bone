@@ -4,7 +4,7 @@
   <img src="docs/images/rosetta-bone-hero.png" alt="Rosetta Bone — The LLM that thinks it's a Good Boy!" width="700">
 </p>
 
-An umbrella repo for niche dog-domain LLMs that are dumb, excitable,
+Home for a pack of niche dog-domain LLMs that are dumb, excitable,
 and confidently wrong about cause-and-effect — exactly what every dog
 is.
 
