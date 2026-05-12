@@ -24,7 +24,7 @@ GUTENBERG_BOOK_IDS: list[int] = [
     440,   # Beautiful Joe — Marshall Saunders (the canonical dog-POV sentimental novel)
     1059,  # A Dog's Tale — Mark Twain (short, first-person dog narrator)
     3007,  # Bob, Son of Battle — Alfred Ollivant (working sheepdog protagonist)
-    271,   # Black Beauty — Anna Sewell (first-person animal autobiography; structural template for the genre)
+    271,   # Black Beauty — Anna Sewell (first-person animal autobiography)
     215,   # The Call of the Wild — Jack London (wild-survival register; risk-watch in v7)
 ]
 
