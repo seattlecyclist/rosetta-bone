@@ -584,6 +584,13 @@ set; LoRA adapter weights land under
 `config/default.toml`; a few hundred is enough to see meaningful
 style transfer at 10 K pairs).
 
+Every run tees mlx-lm's stdout to `<adapter_dir>/train.log` and
+auto-prints a parsed summary (train + validation loss series,
+throughput, peak memory, overfit verdict) at the end. To re-inspect
+a past run: `uv run rosetta-storyteller train-inspect [--adapter X]`.
+See [docs/runbook.md](docs/runbook.md) for the report format and
+verdict heuristics.
+
 ### 6. `generate` — inference
 
 Loads the base model + LoRA adapter once (cached for repeated calls)

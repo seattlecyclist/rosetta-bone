@@ -391,6 +391,18 @@ def train_cmd(
         f"  tokens seen during training:   {int(tokens_seen):,}",
     )
 
+    # If a captured train log exists (only for runs after the tee
+    # change landed), automatically render the deeper analyzer
+    # report — train/validation loss series, throughput, overfit
+    # verdict. Falls through silently for legacy adapters.
+    train_log = versioned_dir / "train.log"
+    if train_log.exists():
+        from rosetta_bone.storyteller.train.log_analyzer import (
+            format_report,
+            parse_log,
+        )
+        typer.echo("\n" + format_report(parse_log(train_log)))
+
 
 def _resolve_adapter_arg(arg: str, adapter_root: Path) -> Path:
     """Resolve an --adapter argument to a concrete path.
@@ -403,6 +415,60 @@ def _resolve_adapter_arg(arg: str, adapter_root: Path) -> Path:
     if p.is_absolute() or "/" in arg:
         return p
     return adapter_root / arg
+
+
+@app.command("train-inspect")
+def train_inspect_cmd(
+    adapter: str | None = typer.Option(
+        None, "--adapter",
+        help="Adapter timestamp or path. Default: latest.",
+    ),
+    log_file: Path | None = typer.Option(
+        None, "--log-file",
+        help="Direct path to an mlx-lm training log. Overrides --adapter "
+             "when set; useful for inspecting logs that aren't co-located "
+             "with their adapter dir (e.g., legacy or workflow-script logs).",
+    ),
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    """Parse a training log and report training-health signals.
+
+    Renders: train and validation loss series, throughput, peak memory,
+    and a heuristic overfit verdict. mlx-lm's own 'Val loss' lines are
+    translated to 'validation loss' everywhere in the output.
+    """
+    from rosetta_bone.storyteller.train.log_analyzer import (
+        format_report,
+        parse_log,
+    )
+
+    if log_file is not None:
+        log_path = log_file
+    else:
+        cfg = load_config(config_path)
+        if adapter:
+            adapter_dir = _resolve_adapter_arg(adapter, cfg.paths.adapter_dir)
+        else:
+            latest = cfg.paths.adapter_dir / "latest"
+            if not latest.exists():
+                typer.echo(
+                    f"No 'latest' symlink at {latest}. Train at least once first.",
+                    err=True,
+                )
+                raise typer.Exit(2)
+            adapter_dir = latest.resolve()
+        log_path = adapter_dir / "train.log"
+
+    if not log_path.exists():
+        typer.echo(
+            f"No training log found at {log_path}. "
+            "Only adapters trained after the tee-to-file change have one; "
+            "for older runs pass --log-file <path> directly.",
+            err=True,
+        )
+        raise typer.Exit(2)
+
+    typer.echo(format_report(parse_log(log_path)))
 
 
 @app.command("generate")

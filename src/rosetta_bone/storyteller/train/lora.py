@@ -75,8 +75,27 @@ def train(
         rank=rank, alpha=alpha, iters=iters, batch_size=batch_size,
         learning_rate=learning_rate,
     )
-    # Inherit stdout/stderr from the parent process so mlx-lm's per-iter
-    # progress + tqdm bars stream to the terminal in real time. Capturing
-    # output would buffer everything until the subprocess exits, making
-    # a 10-minute training run indistinguishable from a hang.
-    return subprocess.run(argv, check=False, text=True)
+    # Tee mlx-lm's stdout to two places:
+    #   1. The parent terminal — so the user sees per-iter progress live
+    #   2. `<adapter_dir>/train.log` — so `train-inspect` can parse the
+    #      training history after the fact (validation-loss series,
+    #      throughput, peak memory, overfit verdict)
+    # Capturing into a buffer is NOT used (would hide a multi-hour run
+    # behind a silent block).
+    log_path = adapter_dir / "train.log"
+    with log_path.open("w") as log_file:
+        proc = subprocess.Popen(
+            argv,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        assert proc.stdout is not None
+        for line in proc.stdout:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            log_file.write(line)
+            log_file.flush()
+        rc = proc.wait()
+    return subprocess.CompletedProcess(args=argv, returncode=rc)
