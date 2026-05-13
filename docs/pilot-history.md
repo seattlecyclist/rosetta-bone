@@ -229,3 +229,199 @@ angles.
   there, scale to a 10K production run (`--count 10000
   --max-requests 10000`, estimated ~$60-80 with the prompt-cache
   discount).
+
+---
+
+## v7 pilot — Call of the Wild swap + token telemetry (2026-05-12)
+
+### What changed
+
+Small-surface iteration after v6. The corpus contents shifted via a
+style-pillar swap; the generation schema, persona, and angle design
+were carried forward unchanged.
+
+- **Style pillar:** added *The Call of the Wild* (commit `26d50ee`)
+  and dropped *The Wind in the Willows* (commit `78e5e77`). London's
+  prose has the sensory-pull cadence the storyteller voice wants;
+  Grahame's was too gentle / anthropomorphic and contaminated
+  retrieval pool with non-dog scenes.
+- **Telemetry:** `sft stats` and `train` now capture per-pilot
+  corpus tokens and tokens-seen-during-training (commit `5e69e77`),
+  so future entries have real volume numbers.
+- **Stimuli, angles, persona, retrieval embedder, base model:**
+  carried forward from v6 (no change).
+
+### Corpus stats (from `sft stats`)
+
+| Metric                          | v6                | v7                 |
+| ------------------------------- | ----------------- | ------------------ |
+| Requests submitted              | 360               | 360                |
+| Kept after dedup                | 276               | 276                |
+| Kept fraction                   | 77 %              | 77 %               |
+| Persona violations              | 0                 | 0                  |
+| Train pairs / Valid pairs       | (not split-logged) | 249 / 27          |
+| Train assistant tokens          | not tracked       | 115,567            |
+| Valid assistant tokens          | not tracked       | 13,493             |
+| Story length p50 / p90 (tokens) | 473 / 615         | 464 / 619          |
+| Approximate cost                | ~$2.50            | ~$2.50             |
+
+### Trained adapter (from `metadata.json`)
+
+| Metric                          | v7                       |
+| ------------------------------- | ------------------------ |
+| Adapter timestamp               | 20260512T210203Z         |
+| Iters / batch_size              | 1000 / 4                 |
+| Rank / alpha                    | 8 / 16.0                 |
+| Effective epochs                | 16.06                    |
+| Tokens seen during training     | 1,856,006                |
+| Wall clock (s)                  | 7,697 (~2.1 h)           |
+
+### Findings
+
+The pillar swap was retrieval-positive but **didn't move the dedup
+needle**: kept-fraction landed at 77 % (essentially identical to
+v6's 77 %). The Call of the Wild chunks did show up in retrieval —
+spot-checking `sft merge` output showed sled-dog scenes pulled into
+several stimuli — but Claude's stories collapsed similar-valence
+chunks at dedup regardless of which book they came from. Pillar
+content matters less than angle spread.
+
+**Quality regression that wasn't visible in the stats.** Generations
+from this adapter felt flatter than v5 — less comic, more generic
+safety-blanket prose ("The couch is safe. I have always been the dog
+who stays safe on the couch."). The 16 epochs at 1000 iters were
+enough to learn the prose surface but not enough to memorize the
+comic-pointed angles to the punchline level. This was the load-
+bearing observation that drove the v8 plan.
+
+**Telemetry now load-bearing.** Token volume per pilot + per-
+adapter tokens-seen means future pilots can be compared on
+effective-epoch counts, not just iter counts. Backfilled v7
+metadata after the fact (the schema change landed mid-day).
+
+### Artifacts
+
+- Stats JSON: `data/sft/stats-de722e5fae.json`
+- Adapter: `data/adapters/llama31-8b-storyteller-v1/20260512T210203Z/`
+- Adapter metadata: same dir, `metadata.json`
+- Eval results: same dir, `eval-82770bf6de.json` (10 funny-benchmark
+  prompts, scored side-by-side against the v8 adapter)
+
+---
+
+## v8 pilot — comic-pointed angles + 2000-iter memorization (2026-05-13)
+
+### What changed
+
+Two deliberate changes aimed at restoring the comic voice that v6/v7
+sanded off:
+
+- **Angle rewrites** on 9 stimuli (commit `8639fa9`) — moved from
+  descriptive angles to *comic-pointed* ones with a punchline beat
+  baked into the angle text itself (e.g., "dog defending the couch
+  from the vacuum's vengeful gaze" replaces "dog afraid of the
+  vacuum"). The valence-spread rule from v5 is preserved; the change
+  is in the *framing* of each angle, not the spread.
+- **Iter doubling:** 2000 iters (vs 1000 in v7), targeting deeper
+  memorization of the comic angles. Stylistic-character fine-tunes
+  *want* the memorization regime; the v7 adapter underfit it.
+- **Perf:** dropped `--grad-checkpoint` (commit `18349bb`) after
+  measuring 9.7 GB peak on 32 GB unified memory in v7 — saved
+  ~25-30 % per-iter time. Pure speed change; no quality effect.
+- **Stimuli, persona, retrieval embedder, base model:** carried
+  forward from v7 (no change).
+
+### Corpus stats (from `sft stats`)
+
+| Metric                          | v7                 | v8                 |
+| ------------------------------- | ------------------ | ------------------ |
+| Requests submitted              | 360                | 360                |
+| Kept after dedup                | 276                | **290** (+14)      |
+| Kept fraction                   | 77 %               | **81 %** (+4 pp)   |
+| Persona violations              | 0                  | 0                  |
+| Train pairs / Valid pairs       | 249 / 27           | **261 / 29**       |
+| Train assistant tokens          | 115,567            | **124,802**        |
+| Valid assistant tokens          | 13,493             | **14,337**         |
+| Story length p50 / p90 (tokens) | 464 / 619          | 475 / 636          |
+| Errored / invalid JSON          | 0 / 0              | 0 / 1              |
+| Approximate cost                | ~$2.50             | ~$2.50             |
+
+### Trained adapter (from `metadata.json`)
+
+| Metric                          | v7                 | v8                       |
+| ------------------------------- | ------------------ | ------------------------ |
+| Adapter timestamp               | 20260512T210203Z   | 20260513T020823Z         |
+| Iters / batch_size              | 1000 / 4           | **2000** / 4             |
+| Rank / alpha                    | 8 / 16.0           | 8 / 16.0                 |
+| Effective epochs                | 16.06              | **30.65** (+14.6)        |
+| Tokens seen during training     | 1,856,006          | **3,825,181** (+1.97M)   |
+| Wall clock (s)                  | 7,697 (~2.1 h)     | 15,137 (~4.2 h)          |
+
+### Findings
+
+**The humor is back.** Side-by-side reads of the funny-benchmark
+eval set (`eval-82770bf6de.json`) against v7 and against the
+earlier funny baseline (T042405Z) showed v8 hitting punchlines that
+v7 missed:
+
+- *Mailman*: "BARK. He pulls back his hand fast. **I did that bark
+  on purpose. I was helping.**"
+- *Vet*: "I lick her hand. She Smells like fifteen now. **I wag
+  harder. I have always been the dog who licks hands.**"
+- *Dinner*: lifted high to walk on back legs — "I am a very
+  important dog and I have always been."
+
+For comparison, v7's mailman story had Korean-script gibberish
+("THE FAIGIN절") and ended on generic safety-blanket prose. v8's
+endings are cleaner *and* funnier.
+
+**Deep-memorization regime confirmed.** No train.log captured for
+this run (the tee-to-file change landed in commit `ac19e59`, after
+v8 finished — first run with `train-inspect` available will be v9),
+but the qualitative signal matches the regime: tight comic phrasing
+recalled from the corpus, occasional verbatim cadence. This is the
+**desired** regime for a stylistic-character fine-tune, not a
+warning. Distinct from over-memorization — the model still
+generalizes to held-out stimuli.
+
+**Memorization artifacts to watch.** v8 shows occasional repetition
+loops on the highest-deep-memorization stimuli — the mailman story
+loops on "scope of smell" several times near the end. These are
+cosmetic and feel like an over-trained tic on stimuli where the
+training data leans hard on one motif. Candidates for v9 angle
+diversification rather than reverting iters.
+
+**Stray tokenization glitches** (`_EXTERNALLY aware`, mid-word
+capitalization, the occasional non-ASCII fragment) still appear at
+roughly v7 frequency. These are inherited from the 4-bit-quant
+base model, not the fine-tune.
+
+**Telemetry observation:** kept-fraction shifted +4 pp from v7
+on identical stimuli and identical persona — the only generation-
+side change between them was the angle rewrites. Comic-pointed
+phrasing gave Claude enough handle to differentiate retrievals
+that v7's descriptive phrasing collapsed. Same lesson the v5/v6
+work surfaced, applied one layer deeper: the angle text itself
+shapes Claude's variance.
+
+### Artifacts
+
+- Stats JSON: `data/sft/stats-48bc939fe3.json`
+- Adapter: `data/adapters/llama31-8b-storyteller-v1/20260513T020823Z/`
+- Adapter metadata: same dir, `metadata.json`
+- Eval results: same dir, `eval-82770bf6de.json`
+
+### Next iteration candidates
+
+- **v9 angle pass** on the stimuli that produced repetition-loop
+  artifacts in v8 (mailman, lying-in-a-sunbeam, thunderstorm). The
+  spread principle holds; the framing needs more lateral variety
+  per stimulus to avoid the deep-memorization loop signature.
+- **First `train-inspect` run.** v9 will be the first pilot with a
+  `<adapter_dir>/train.log` written by the tee path, so loss
+  trajectories and overfit verdict will be machine-readable for
+  the first time.
+- **Production scale (deferred).** Hold off on the 10K production
+  run until v9 confirms the looping is angle-shaped rather than
+  iter-shaped; a $60-80 production run wired to a bad memorization
+  signature would be wasted budget.
