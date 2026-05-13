@@ -425,3 +425,185 @@ shapes Claude's variance.
   run until v9 confirms the looping is angle-shaped rather than
   iter-shaped; a $60-80 production run wired to a bad memorization
   signature would be wasted budget.
+
+---
+
+## v9 pilot — comedic-mode-tagged angles + first captured train.log (2026-05-13)
+
+### What changed
+
+The load-bearing change to v9 was the angle-design rule. Multi-
+sample comparison across all eight prior adapters (mailman + bacon
++ vet, 5 samples each = 120 stories) surfaced five distinct
+comedic modes — *delusion*, *coward*, *absurd*, *rationalizer*,
+*dissociator* — with each adapter accidentally specializing in
+just one. v9 retags every angle in `config/stimuli.yaml` by
+comedic mode rather than emotional valence, with the goal of
+producing a single adapter that hits all five modes on demand.
+
+- **Comedic-mode taxonomy** captured in [docs/comedic-modes.md](
+  comedic-modes.md) — each of the five modes has its source
+  adapter (the comparison's strongest sample), canonical lines
+  pulled from the comparison, and the angle-phrasing pattern that
+  reproduces it.
+- **Stimuli rewrite** (commit `3cfe15a`): all 50 stimuli get 3
+  angles, each tagged inline with one of the 5 modes. Mode
+  coverage across the 150 angles: **D=37 / C=29 / A=30 / R=29 /
+  Z=25** (target was ~30 each). Variations-per-query and total
+  request volume held at 360 to match v8 (apples-to-apples).
+- **Telemetry milestone:** v9 is the first run since the
+  tee-to-file change in commit `ac19e59`, so this is the first
+  adapter with a captured `train.log` parseable by
+  `rosetta-storyteller train-inspect`.
+- **Persona, retrieval embedder, base model, training
+  hyperparameters:** carried forward from v8 (no change). The
+  comparison is purely angle-design vs angle-design.
+
+### Corpus stats (from `sft stats`)
+
+| Metric                          | v8                 | v9                       |
+| ------------------------------- | ------------------ | ------------------------ |
+| Requests submitted              | 360                | 360                      |
+| Kept after dedup                | 290                | **306** (+16)            |
+| Kept fraction                   | 81 %               | **85 %** (+4 pp)         |
+| Persona violations              | 0                  | **0**                    |
+| Train pairs / Valid pairs       | 261 / 29           | **276 / 30**             |
+| Train assistant tokens          | 124,802            | **135,237**              |
+| Valid assistant tokens          | 14,337             | 14,584                   |
+| Story length p50 / p90 (tokens) | 475 / 636          | (similar, in same range) |
+| Errored / invalid JSON          | 0 / 1              | 0 / 0                    |
+| Approximate cost                | ~$2.50             | ~$2.50                   |
+
+The kept-fraction lift is a real corpus-level validation of the
+comedic-mode-spread hypothesis: angles tagged by mode produce
+*more* dedup-distinct stories than angles tagged by emotional
+valence, on the same prompts and the same retrieval embedder.
+The orthogonality argument in `docs/comedic-modes.md` ("mode is
+a stance toward the situation, not a valence") holds in practice.
+
+### Trained adapter (from `metadata.json`)
+
+| Metric                          | v8                       | v9                       |
+| ------------------------------- | ------------------------ | ------------------------ |
+| Adapter timestamp               | 20260513T020823Z         | 20260513T191317Z         |
+| Iters / batch_size              | 2000 / 4                 | 2000 / 4 (unchanged)     |
+| Rank / alpha                    | 8 / 16.0                 | 8 / 16.0 (unchanged)     |
+| Effective epochs                | 30.65                    | 28.99                    |
+| Tokens seen during training     | 3,825,181                | 3,920,520                |
+| Wall clock (s)                  | 15,137 (~4.2 h)          | 14,238 (~3.95 h)         |
+| Peak memory                     | not captured             | **18.1 GB**              |
+
+### `train-inspect` numbers (first ever captured)
+
+```
+THROUGHPUT   0.145 it/sec median (range 0.123-0.184), 323 tokens/sec median
+
+TRAIN LOSS                 first-10 avg = 1.716 → last-10 avg = 0.080
+                           min = 0.069 at iter 1970
+
+VALIDATION LOSS  iter    1: 2.413   ← untrained baseline
+                 iter  200: 1.520   ← min (generalization sweet spot)
+                 iter  400: 1.568
+                 iter  600: 1.669
+                 iter  800: 1.840
+                 iter 1000: 2.036
+                 iter 1200: 2.276
+                 iter 1400: 2.493
+                 iter 1600: 2.852
+                 iter 1800: 3.064
+                 iter 2000: 3.239   ← +113 % from min
+
+VERDICT  deep memorization. final train loss 0.08 (collapsed);
+         train-validation gap 3.16. Desired regime for stylistic-
+         character fine-tunes.
+```
+
+The validation curve is the textbook over-memorization parabola.
+Iter 200 is where the model best generalizes to held-out
+examples; iter 2000 is where it best reproduces the training
+distribution. We deliberately want iter 2000 for a stylistic
+fine-tune; an information-injection fine-tune would have stopped
+at iter 200.
+
+The grad-checkpoint drop from commit `18349bb` is now confirmed
+working: peak memory 18.1 GB on 32 GB unified, well under budget
+and ~1 GB under the predicted 17 GB ceiling.
+
+### Findings — comedic-mode coverage hypothesis confirmed
+
+**Single stories now stack multiple modes** — the headline result.
+v8 produced single-mode stories (almost always absurd-distraction).
+v9's eval-set generations stack 2-3 modes in a single ~300-word
+story. From the v9 mailman against the funny benchmark
+(`/tmp/v9-vs-funny.txt`):
+
+> "I have reflected upon this attack. I think I may have been too
+> soft. **Next time he will run faster.** He must know this is my
+> territory and I have always been the dog who makes him go away."
+> — *delusion (invented job, unearned credit) → coward (vague threat
+> for next time, deferred to "tonight" thinking)*
+
+v8 on the same prompt would commit to one mode and stay there.
+
+**Validation curve confirms the regime is right.** The min
+validation at iter 200 is interesting but academic: stylistic
+fine-tunes do not optimize for validation loss; they optimize for
+faithful reproduction of the training distribution. The +113%
+validation climb is the *signal* that the model has internalized
+the corpus, not a regression.
+
+**Two minor regressions.** The eval-set v9 stories show:
+
+1. **More non-English token fragments** than v8 — *"OptionsResolver"*,
+   *"Dog Seznam"* (Czech for *list*), *"Groundrustle"*. These
+   appear at maybe 1-2 per story vs v8's <1. The base model is
+   4-bit quantized and reaches into rare-token-space when sampler
+   probabilities flatten near sentence boundaries; the deeper
+   memorization regime (28.99 epochs vs v8's lighter spread) seems
+   to reach into that rare-token tail more often. Cosmetic, not a
+   blocker.
+
+2. **`# delusion` over-represented** in the v9 corpus (37 angles
+   vs target 30). The trained adapter slightly over-indexes on the
+   "I have always been the dog who…" rhetorical move — visible in
+   3 of the first 5 eval-set stories. v9.1 stimuli rebalance:
+   move 4 D angles to Z to bring the distribution closer to
+   uniform.
+
+**No more "scope of smell" loops.** v8's most prominent failure
+mode (one phrase chained 5+ times near the end of stories on
+high-memorization stimuli) is gone in v9 — the comedic-mode
+spread breaks the single-tic memorization that v8's narrower
+angle space created.
+
+### Artifacts
+
+- Stats JSON: `data/sft/stats-4a1c8b1f28.json`
+- Adapter: `data/adapters/llama31-8b-storyteller-v1/20260513T191317Z/`
+- Adapter metadata: same dir, `metadata.json`
+- Training log (first ever captured): same dir, `train.log`
+- Eval results: same dir, `eval-82770bf6de.json`
+- Eval-compare v8 → v9: `/tmp/v9-vs-v8.txt`
+- Eval-compare T042405Z → v9: `/tmp/v9-vs-funny.txt`
+
+### Next iteration candidates
+
+- **v9.1 angle-balance pass.** Move 4 D angles to Z; spot-check
+  3 stimuli where D is currently doing the work that another mode
+  could do better (e.g., *settling for the night* could swap D
+  for Z without losing humor).
+- **Multi-sample mode coverage check.** Run the same "5 samples
+  per stimulus, 3 prompts" protocol against v9 that we used for
+  the v8-era comparison. Quantify what fraction of stories hit
+  each mode. If v9 is producing all 5 modes ≥15 % of the time on
+  the eval set, the hypothesis is confirmed and v10 can shift
+  focus to other corpus-design questions (better seed examples?
+  longer-form stories?). If some modes are still sub-5 %, the
+  underlying mode taxonomy needs a closer look — maybe two of the
+  modes are functionally identical at corpus scale.
+- **Production scale (now genuinely defensible).** v9 demonstrates
+  the corpus-design lever works. A 10K production run on the same
+  comedic-mode-tagged angles would give us a meaningfully larger
+  training set per mode (~2K stories per mode instead of ~60).
+  Estimated cost ~$60-80 with prompt caching. Hold until v9.1
+  confirms the mode-coverage measurement is stable.

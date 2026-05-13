@@ -45,9 +45,14 @@ for the longer version.
 
 ## Sample outputs
 
-*All three samples below were generated from the v8 adapter
-(`20260513T020823Z`, our current `latest`). See the "Trained
-adapters" section below for the full version history.*
+*The three samples below were generated from the v8 adapter
+(`20260513T020823Z`). v9 (`20260513T191317Z`, current `latest`,
+trained 2026-05-13) was a corpus-design change rather than a
+training-method change — see [docs/pilot-history.md](docs/pilot-history.md)
+and [docs/comedic-modes.md](docs/comedic-modes.md). Sample outputs
+on this page will be refreshed when the v9 multi-sample comparison
+lands. See the "Trained adapters" section below for the full
+version history.*
 
 ### Stimulus: `the smell of bacon`
 
@@ -761,7 +766,8 @@ Listed in chronological order; the **bold** row is `latest`.
 | `20260512T042405Z`    | "funny baseline" | 2000 | 35       | Surprise comedic hit on a tiny corpus — deep memorization on 35 pairs produced the funniest mailman story we'd seen. Became the eval-set comedic touchstone for later runs. |
 | `20260512T173159Z`    | v6 adapter   | 1000   | 249         | First train on the full 50-stimulus angle-redesigned corpus. Style transferred but the comic voice flattened — surfaced the "more pairs ≠ more humor" lesson.            |
 | `20260512T210203Z`    | **v7 pilot** | 1000   | 249         | Style pillar swap (Call of the Wild in, Wind in the Willows out) + per-pilot token telemetry. Kept fraction held at 77 %; humor still flat at 1000 iters / 16 epochs.    |
-| **`20260513T020823Z`**| **v8 pilot** (latest) | 2000 | 261     | Comic-pointed angle rewrites + 2000-iter deep-memorization regime. Kept fraction 77 % → 81 %; humor measurably back. Currently `latest`.                                  |
+| `20260513T020823Z`    | v8 pilot     | 2000   | 261         | Comic-pointed angle rewrites + 2000-iter deep-memorization regime. Kept fraction 77 % → 81 %; humor measurably back. One-mode-per-story tendency.                       |
+| **`20260513T191317Z`**| **v9 pilot** (latest) | 2000 | 276     | Comedic-mode-tagged angles (delusion / coward / absurd / rationalizer / dissociator). Kept fraction 81 % → 85 %. Single stories now stack 2-3 modes. Currently `latest`. |
 
 ### Loading a specific adapter
 
