@@ -33,9 +33,9 @@
 
 - prompt: "the mailman arriving"
   embed_queries:
-    - "dog tracking the mailman's familiar scent up the walkway"   # sensory
-    - "dog excited to recognize mailman as part of daily routine"  # positive
-    - "dog frantic alarm-barking at intruding mailman"             # negative
+    - "dog cataloguing the foreign scents the mailman carries from every other house on the route"   # sensory
+    - "dog hopeful that the mailman has finally come to visit the dog personally"                   # positive
+    - "dog convinced its barking single-handedly defeats the mailman every day"                     # negative
   variations_per_query: 3
   form: diary
 
@@ -49,17 +49,17 @@
 
 - prompt: "owner returning home from work"
   embed_queries:
-    - "dog reading the day's foreign smells on owner's clothes"        # sensory
-    - "dog overcome with joy at owner's key turning in the lock"       # positive
-    - "dog pointedly ignoring owner after being abandoned all day"     # negative
+    - "dog forensically reading every smell on owner's clothes to reconstruct the day"   # sensory
+    - "dog losing its entire mind with joy at the sound of owner's key in the lock"      # positive
+    - "dog dramatically sulking to punish owner for the unforgivable absence of one day"  # negative
   variations_per_query: 3
   form: diary
 
 - prompt: "dinner being prepared in the kitchen"
   embed_queries:
-    - "dog parsing cooking aromas molecule by molecule from across the house"  # sensory
-    - "dog stationed hopefully at owner's feet during dinner prep"             # positive
-    - "dog despondent at being shut out of the kitchen during cooking"         # negative
+    - "dog tracking every molecule of cooking aroma through the entire house"        # sensory
+    - "dog convinced its presence at owner's feet is essential to the cooking"       # positive
+    - "dog gravely offended at being separated from food preparation by a baby gate"  # negative
   variations_per_query: 3
   form: vignette
 
@@ -89,9 +89,9 @@
 
 - prompt: "a long car ride"
   embed_queries:
-    - "dog reading layered passing smells through open car window"  # sensory
-    - "dog content riding shotgun with head in the breeze"           # positive
-    - "dog miserable from motion sickness on a winding road"         # negative
+    - "dog parsing the layered car-window smells of every place the car passes through"   # sensory
+    - "dog convinced this car ride is heading directly to the best place a dog has ever been"  # positive
+    - "dog grimly enduring motion sickness while quietly judging the human for it"        # negative
   variations_per_query: 3
   form: diary
 
@@ -137,9 +137,9 @@
 
 - prompt: "a new baby in the house"
   embed_queries:
-    - "dog mapping the unfamiliar milk-and-skin smell of the new baby"  # sensory
-    - "dog gently guarding the new baby as a small pack member"         # positive
-    - "dog jealous of all attention shifting to the loud crying baby"   # negative
+    - "dog struggling to categorize the strange new milk-and-skin smell"               # sensory
+    - "dog appointing itself the baby's official round-the-clock guardian"             # positive
+    - "dog scandalized that this loud crying smell has stolen all the attention"       # negative
   variations_per_query: 3
   form: short_story
 
@@ -251,9 +251,9 @@
 
 - prompt: "the back gate left open"
   embed_queries:
-    - "dog sniffing the rush of unfamiliar smells through the open gate"  # sensory
-    - "dog ecstatic at the unexpected freedom of an open gate"            # positive
-    - "dog worried the open gate means owner has forgotten to come back"  # negative
+    - "dog suddenly overwhelmed by every outside smell the open gate is admitting"  # sensory
+    - "dog convinced the open gate is a personal gift and a sign of cosmic favor"   # positive
+    - "dog suspicious the open gate is a test and refusing to fall for it"          # negative
   variations_per_query: 2
   form: diary
 
@@ -293,17 +293,17 @@
 
 - prompt: "owner taking out the trash"
   embed_queries:
-    - "dog cataloguing the rich layered smells of the kitchen trash bag"  # sensory
-    - "dog escorting owner to the trash can like a knight on parade"      # positive
-    - "dog grieving when treasured trash leaves the house forever"        # negative
+    - "dog cataloguing the rich complex aromas of a week's worth of kitchen trash"      # sensory
+    - "dog supervising the trash removal as the household's official trash inspector"   # positive
+    - "dog devastated as owner removes a beloved collection of important smells"        # negative
   variations_per_query: 2
   form: vignette
 
 - prompt: "a sock left on the floor"
   embed_queries:
-    - "dog savoring the rich foot-scent of an owner's worn sock"  # sensory
-    - "dog triumphant with stolen sock paraded across the house"  # positive
-    - "dog guilty after being caught chewing a forbidden sock"    # negative
+    - "dog savoring the deep specific foot-smell of a single beloved sock"               # sensory
+    - "dog triumphantly parading a stolen sock through the entire house"                # positive
+    - "dog mortified when caught with a chewed sock and pretending it was someone else"  # negative
   variations_per_query: 2
   form: diary
 
@@ -359,9 +359,9 @@
 
 - prompt: "a sick owner staying in bed"
   embed_queries:
-    - "dog reading the strange chemical illness scents on a bedridden owner"  # sensory
-    - "dog content snuggled all day against a still and resting owner"        # positive
-    - "dog anxious about owner not getting up for the morning routine"        # negative
+    - "dog reading sick owner's strange chemical scents and trying to diagnose them"    # sensory
+    - "dog taking the solemn responsibility of nursing a sick owner all day"            # positive
+    - "dog deeply alarmed that owner has broken the morning routine without explanation"  # negative
   variations_per_query: 2
   form: short_story
 
