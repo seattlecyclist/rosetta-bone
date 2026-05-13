@@ -791,5 +791,13 @@ uv run pytest tests/unit -q
 ANTHROPIC_API_KEY=... uv run pytest tests/integration -m slow -v
 ```
 
+## License
+
+Source code in this repository is released under the [Apache License 2.0](LICENSE).
+
+Trained adapters and model artifacts published from this project (e.g.
+on Hugging Face Hub) are covered by the license stated at the
+publication site, not by the repo license.
+
 [three-pillars-data-architecture]: https://github.com/agileedge/llm-wiki
 [synthetic-data-sandwich]: https://github.com/agileedge/llm-wiki

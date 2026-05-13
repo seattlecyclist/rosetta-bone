@@ -5,7 +5,8 @@ description = "Niche dog-domain LLMs (storyteller v1) trained via the three-pill
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [{ name = "mike", email = "mike@agileedge.com" }]
-license = { text = "MIT" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 
 dependencies = [
     "anthropic>=0.40",
