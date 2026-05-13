@@ -11,183 +11,188 @@
 #     user block, so the generated story is recognizably *this* version
 #     of the scene rather than a generic instance.
 #
-# Convention for angles: pick *behavioral or emotional or sensory*
-# slices, not paraphrases. "dog hiding from loud mailman" retrieves
-# different chunks than "dog begging mailman for treats". "the mail
-# carrier arrives" retrieves the same chunks as the base prompt and
-# adds nothing.
+# ─── v9 design rule: comedic-mode spread ─────────────────────────────────
 #
-# Engineering lesson from the v5 pilot (see docs/pilot-history.md):
-# angles that share an *emotional valence* — two anxious takes, two
-# ecstatic takes — collapse together at dedup because Claude writes
-# similar instructions for similar inputs. The reliable spread per
-# stimulus is:
+# Each angle is tagged inline with one of five comedic modes
+# (see docs/comedic-modes.md for source canonicals + phrasing patterns):
 #
-#     1. one SENSORY slice  (scent / sound / proprioception)
-#     2. one EMOTIONAL-POSITIVE slice  (joy, anticipation, contentment)
-#     3. one EMOTIONAL-NEGATIVE slice  (fear, anxiety, jealousy)
+#   - # delusion     — invented job / unearned authority / made-up importance
+#   - # coward       — build dread → bail with a face-saving spin
+#   - # absurd       — free-associative reasoning / hyper-distraction
+#   - # rationalizer — mistaken premise stated as fact + casual aside
+#   - # dissociator  — refuse to engage; pivot away; choose inner peace
 #
-# Stimuli that follow this pattern hit 90–100 % kept-after-dedup in
-# the v5 pilot. Stimuli with overlapping-valence angles dropped to
-# 44–55 %.
+# Per-stimulus rule: pick three of the five modes that fit the scene
+# naturally and write one angle in each. The mode is a *stance toward
+# the situation* — orthogonal to emotional valence, which is what
+# dedup collapses on. Two angles with the same valence ("dog afraid
+# of mailman" + "dog suspicious of mailman") collapse at dedup. Two
+# angles with different modes ("dog charges then hides" coward +
+# "dog ignores the mailman entirely" dissociator) do not collapse
+# because the *behavioral shape* of the resulting stories differs.
+#
+# Aim for ~30 angles per mode across the corpus (150 / 5). v9
+# rebalances away from the v5/v6/v7/v8 reliance on emotional-valence
+# spread, which produced an adapter (v8) strong in absurd-distraction
+# but weak in delusion + cowardly-deflation + dissociation.
 
 - prompt: "the mailman arriving"
   embed_queries:
-    - "dog cataloguing the foreign scents the mailman carries from every other house on the route"   # sensory
-    - "dog hopeful that the mailman has finally come to visit the dog personally"                   # positive
-    - "dog convinced its barking single-handedly defeats the mailman every day"                     # negative
+    - "dog convinced its barking single-handedly defeats the mailman every day"                    # delusion
+    - "dog mounting a fierce defense from behind the couch where it cannot be seen by mailman"     # coward
+    - "dog deciding the mailman situation is too much and just thinking about lunch instead"      # dissociator
   variations_per_query: 3
   form: diary
 
 - prompt: "a trip to the vet"
   embed_queries:
-    - "dog anxious in veterinary waiting room"
-    - "dog sniffing antiseptic smells in vet clinic"
-    - "dog excited about treat after veterinary exam"
+    - "dog convinced the vet technician is here to be inspected by the dog and not the reverse"   # delusion
+    - "dog plotting heroic escape from waiting room but freezing the moment a hand approaches"    # coward
+    - "dog enduring the exam by mentally retreating to the memory of a single perfect tennis ball" # dissociator
   variations_per_query: 3
   form: vignette
 
 - prompt: "owner returning home from work"
   embed_queries:
-    - "dog forensically reading every smell on owner's clothes to reconstruct the day"   # sensory
-    - "dog losing its entire mind with joy at the sound of owner's key in the lock"      # positive
-    - "dog dramatically sulking to punish owner for the unforgivable absence of one day"  # negative
+    - "dog conducting the official homecoming greeting ceremony with all the gravity it deserves"  # delusion
+    - "dog forensically inventorying every smell on owner's clothes and following the wrong scent" # absurd
+    - "dog initially convinced owner is a different person who has stolen owner's coat"            # rationalizer
   variations_per_query: 3
   form: diary
 
 - prompt: "dinner being prepared in the kitchen"
   embed_queries:
-    - "dog tracking every molecule of cooking aroma through the entire house"        # sensory
-    - "dog convinced its presence at owner's feet is essential to the cooking"       # positive
-    - "dog gravely offended at being separated from food preparation by a baby gate"  # negative
+    - "dog stationing itself in the official sous-chef position regardless of how many times told to move"  # delusion
+    - "dog hyper-focused on a single onion fragment that fell weeks ago and trying to remember where"      # absurd
+    - "dog pretending to leave the kitchen while actually crawling backwards under the table"              # coward
   variations_per_query: 3
   form: vignette
 
 - prompt: "a thunderstorm at 3am"
   embed_queries:
-    - "dog terrified by thunder hiding under the bed"
-    - "dog alerted by ozone scent before storm arrives"
-    - "dog comforted by owner during thunder phobia"
+    - "dog discovering the safest place is the bathtub it has spent years dramatically refusing"   # coward
+    - "dog ignoring the storm entirely by aggressively grooming its left paw"                       # dissociator
+    - "dog convinced this is finally the sky-cat coming to settle unfinished business with dogs"    # rationalizer
   variations_per_query: 3
   form: short_story
 
 - prompt: "meeting another dog at the park"
   embed_queries:
-    - "dog excited greeting another friendly dog"
-    - "dog tense and reserved with unfamiliar dog"
-    - "dog reading scent markings left by other dogs"
+    - "dog assuming a posture of immediate territorial seniority despite having arrived second"     # delusion
+    - "dog committing to the meet-and-sniff and then catastrophically remembering it does not actually like other dogs"  # coward
+    - "dog losing track of the other dog mid-introduction because someone is grilling four houses away"  # absurd
   variations_per_query: 3
   form: vignette
 
 - prompt: "the vacuum cleaner being used"
   embed_queries:
-    - "dog terrified of vacuum cleaner noise"
-    - "dog stalking and attacking the vacuum"
-    - "dog hiding from vacuum in safe room"
+    - "dog declaring war on the noise-snake on behalf of the entire household"                     # delusion
+    - "dog charging at the vacuum and then strategically retreating to a higher elevation"         # coward
+    - "dog convinced the vacuum has eaten something important and demanding it be returned"        # rationalizer
   variations_per_query: 3
   form: vignette
 
 - prompt: "a long car ride"
   embed_queries:
-    - "dog parsing the layered car-window smells of every place the car passes through"   # sensory
-    - "dog convinced this car ride is heading directly to the best place a dog has ever been"  # positive
-    - "dog grimly enduring motion sickness while quietly judging the human for it"        # negative
+    - "dog refusing to acknowledge motion sickness by staring fixedly at a single point on the door panel"  # dissociator
+    - "dog convinced the car is going only where the dog has decided it should go today"                    # delusion
+    - "dog smelling a far-away pond and constructing an entire alternative trip in its head"                # absurd
   variations_per_query: 3
   form: diary
 
 - prompt: "a bath being run"
   embed_queries:
-    - "dog terrified of bath time water"
-    - "dog stoically tolerating a soapy bath"
-    - "dog playing in shallow bath water"
+    - "dog accepting the bath until the moment of actual water and then becoming a 70-pound liquid"   # coward
+    - "dog convinced this water is medically necessary and the human is performing a procedure"      # rationalizer
+    - "dog believing the bath is an honor bestowed upon dogs of exceptional standing"                # delusion
   variations_per_query: 3
   form: vignette
 
 - prompt: "first snow on the back yard"
   embed_queries:
-    - "dog discovering snow for the first time"
-    - "dog frolicking face-first in deep snow"
-    - "dog tracking new smells dampened by snow"
+    - "dog so overwhelmed by snow it forgets it came outside to relieve itself"                     # absurd
+    - "dog initially convinced the snow is cold grass and behaving accordingly"                     # rationalizer
+    - "dog appointing itself the first official snow inspector of the yard"                         # delusion
   variations_per_query: 3
   form: short_story
 
 - prompt: "a squirrel on the fence"
   embed_queries:
-    - "dog frenzied chase of squirrel along fence"
-    - "dog frustrated by squirrel mocking from a tree"
-    - "dog stalking squirrel scent on the fence rail"
+    - "dog who is the squirrel's foretold enemy and has been training for this confrontation since puppyhood"  # delusion
+    - "dog mid-squirrel-chase getting distracted by an even worse squirrel"                                    # absurd
+    - "dog watching the squirrel mock it and choosing inner peace over engagement"                             # dissociator
   variations_per_query: 3
   form: vignette
 
 - prompt: "the doorbell ringing"
   embed_queries:
-    - "dog barking at the doorbell with full alarm"
-    - "dog confused by doorbell when nobody is at the door"
-    - "dog excited at doorbell expecting a guest"
+    - "dog responding to the doorbell as the household's chief security officer with binding authority"  # delusion
+    - "dog barking violently and then immediately hiding when the door actually opens"                   # coward
+    - "dog still arguing with the doorbell five minutes after anyone has left the door"                  # rationalizer
   variations_per_query: 3
   form: vignette
 
 - prompt: "owner crying on the couch"
   embed_queries:
-    - "dog comforting crying owner with gentle nudges"
-    - "dog confused and distressed by owner's tears"
-    - "dog reading the salt and stress chemicals in owner's tears"
+    - "dog who can fix this and is the only one in the household qualified to do so"                       # delusion
+    - "dog reading the salt-and-stress chemistry of tears and getting distracted by a ham-sandwich note underneath"  # absurd
+    - "dog deciding the situation is above its pay grade and going to lie down somewhere else"             # dissociator
   variations_per_query: 3
   form: diary
 
 - prompt: "a new baby in the house"
   embed_queries:
-    - "dog struggling to categorize the strange new milk-and-skin smell"               # sensory
-    - "dog appointing itself the baby's official round-the-clock guardian"             # positive
-    - "dog scandalized that this loud crying smell has stolen all the attention"       # negative
+    - "dog appointing itself the baby's official round-the-clock guardian without being asked"          # delusion
+    - "dog initially convinced the baby is a strange-smelling puppy with management problems"            # rationalizer
+    - "dog deeply jealous of the baby and then immediately pretending it isn't to maintain dignity"      # coward
   variations_per_query: 3
   form: short_story
 
 - prompt: "moving to a new home"
   embed_queries:
-    - "dog overwhelmed by new house unfamiliar smells"
-    - "dog comforted by familiar bed in new home"
-    - "dog exploring new yard for the first time"
+    - "dog refusing to acknowledge the move and just sitting in the empty kitchen with great dignity"   # dissociator
+    - "dog convinced the new house is the old house with all the furniture rearranged as a prank"      # rationalizer
+    - "dog taking immediate responsibility for marking every corner of the new house as legitimately its own"  # delusion
   variations_per_query: 3
   form: short_story
 
 - prompt: "fireworks on a summer night"
   embed_queries:
-    - "dog hiding in closet from fireworks booms"
-    - "dog trembling pressed against owner during fireworks"
-    - "dog detecting fireworks scent before the booms"
+    - "dog mounting the bravest possible retreat to the bathtub in the back bathroom"                 # coward
+    - "dog ignoring the entire sky situation by chewing one specific spot of the living room rug"     # dissociator
+    - "dog convinced this is the war it has been preparing for since it learned to bark"              # rationalizer
   variations_per_query: 3
   form: vignette
 
 - prompt: "the sound of car keys"
   embed_queries:
-    - "dog ecstatic at car keys expecting a walk"
-    - "dog dejected at car keys expecting to be left alone"
-    - "dog confused by car keys jingling pattern"
+    - "dog interpreting the keys as a binding contract to take the dog somewhere immediately"         # delusion
+    - "dog tracking the keys-sound across three rooms and forgetting why partway through"             # absurd
+    - "dog pretending not to have heard the keys to avoid committing in either direction yet"         # dissociator
   variations_per_query: 3
   form: diary
 
 - prompt: "lying in a sunbeam"
   embed_queries:
-    - "dog blissfully drowsing in warm sun patch"
-    - "dog tracking the sunbeam as it moves across the floor"
-    - "dog smelling dust motes in the warm sunbeam air"
+    - "dog reminding itself it has earned this sunbeam through years of dedicated household service"  # delusion
+    - "dog initially convinced the sunbeam was provided specifically by the human as a personal gift" # rationalizer
+    - "dog tracking a single dust mote and losing the entire concept of relaxation"                   # absurd
   variations_per_query: 3
   form: vignette
 
 - prompt: "a cat trespassing in the garden"
   embed_queries:
-    - "dog outraged by cat scent on the garden fence"
-    - "dog fruitlessly chasing cat up a tree"
-    - "dog gravely studying the cat from the kitchen window"
+    - "dog enforcing the strict no-cats-on-the-fence ordinance it personally authored"                # delusion
+    - "dog barking ferociously and then very quickly making sure the cat isn't going to do anything"  # coward
+    - "dog convinced the cat is actually a small malevolent dog wearing an elaborate costume"         # rationalizer
   variations_per_query: 3
   form: short_story
 
 - prompt: "owner returning from a long trip"
   embed_queries:
-    - "dog overwhelmed with joy at owner's return after a week away"
-    - "dog suspicious of strange travel smells on returning owner"
-    - "dog sulking briefly before forgiving the absent owner"
+    - "dog conducting a formal welcome ceremony complete with circling weeping and approved noises"   # delusion
+    - "dog so overwhelmed it inventories the wrong half of the owner's luggage first"                 # absurd
+    - "dog briefly pretending it never noticed the absence in order to maintain dignity"              # dissociator
   variations_per_query: 3
   form: diary
 
@@ -195,65 +200,65 @@
 
 - prompt: "rain hitting the back door"
   embed_queries:
-    - "dog drowsy and content listening to rain pattering"
-    - "dog alert to ozone scent from heavy rainfall"
-    - "dog spooked by sudden downpour from clear sky"
+    - "dog very urgently needing to go out and then very urgently no longer needing to"               # coward
+    - "dog refusing to engage with the rain and simply sleeping through the entire event"             # dissociator
+    - "dog convinced the rain is a personal grudge from the sky against this specific dog"            # rationalizer
   variations_per_query: 2
   form: vignette
 
 - prompt: "wind blowing leaves across the yard"
   embed_queries:
-    - "dog chasing leaves blown by autumn wind"
-    - "dog startled by leaf rustle in the bushes"
-    - "dog sniffing wind-borne scents from far away"
+    - "dog chasing one leaf and getting completely distracted by a different leaf mid-chase"          # absurd
+    - "dog officially in charge of containing the leaf situation on behalf of the household"          # delusion
+    - "dog initially convinced each individual leaf is a small fast unfamiliar animal"                # rationalizer
   variations_per_query: 2
   form: vignette
 
 - prompt: "morning frost on the grass"
   embed_queries:
-    - "dog cautiously stepping on crunchy frosted grass"
-    - "dog confused by cold wet paws from frozen lawn"
-    - "dog excited by sharp clean smell of cold air"
+    - "dog convinced the grass has betrayed it personally overnight"                                  # rationalizer
+    - "dog so distracted by the crunch under its paws it forgets to do what it came outside for"     # absurd
+    - "dog tactfully ignoring how cold its paws are by pretending to look at something interesting"   # dissociator
   variations_per_query: 2
   form: diary
 
 - prompt: "a hot summer afternoon on the porch"
   embed_queries:
-    - "dog panting heavily in summer heat seeking shade"
-    - "dog drowsy in the warmth of a sunlit porch"
-    - "dog tracking insect sounds from the cool porch"
+    - "dog upgrading itself to porch supervisor for the duration of the entire heat wave"             # delusion
+    - "dog so determined to ignore the heat it puts its full belly directly on the warmest plank"     # dissociator
+    - "dog briefly and disturbingly convinced the porch itself is moving under it"                    # absurd
   variations_per_query: 2
   form: vignette
 
 - prompt: "the sprinkler going off unexpectedly"
   embed_queries:
-    - "dog terrified by sudden sprinkler spray"
-    - "dog gleefully attacking moving sprinkler water"
-    - "dog confused by sprinkler hissing and clicking"
+    - "dog launching a brave but very brief frontal assault on the sprinkler before retreating"       # coward
+    - "dog convinced the sprinkler is an outdoor predator of unknown classification and uncertain intent"  # rationalizer
+    - "dog appointing itself the sprinkler's official trainer and behavior corrector"                 # delusion
   variations_per_query: 2
   form: short_story
 
 - prompt: "a deer at the edge of the yard"
   embed_queries:
-    - "dog rigid with attention at deer scent across the fence"
-    - "dog barking aggressively at unfamiliar large animal"
-    - "dog cautiously stalking deer through the underbrush"
+    - "dog identifying as the deer's natural ancestral predator on absolutely no evidence whatsoever" # delusion
+    - "dog approaching the deer with confidence right up until the deer notices and looks back"       # coward
+    - "dog pretending it never saw the deer once the deer has moved out of sight"                     # dissociator
   variations_per_query: 2
   form: short_story
 
 - prompt: "a hose being dragged across the lawn"
   embed_queries:
-    - "dog suspicious of hose snaking across the grass"
-    - "dog gleefully biting at the spraying hose"
-    - "dog watching owner water plants with the hose"
+    - "dog convinced the hose is finally revealing its true snake form after years of disguise"       # rationalizer
+    - "dog committing to a full physical fight with the hose and then strategically losing it"       # coward
+    - "dog declaring the hose has been brought under personal canine command"                         # delusion
   variations_per_query: 2
   form: vignette
 
 - prompt: "the back gate left open"
   embed_queries:
-    - "dog suddenly overwhelmed by every outside smell the open gate is admitting"  # sensory
-    - "dog convinced the open gate is a personal gift and a sign of cosmic favor"   # positive
-    - "dog suspicious the open gate is a test and refusing to fall for it"          # negative
+    - "dog noticing the open gate and choosing not to take advantage out of perceived professionalism" # dissociator
+    - "dog interpreting the open gate as a personal invitation from the universe itself"              # delusion
+    - "dog stepping outside the gate getting overwhelmed by a single smell and forgetting it was escaping"  # absurd
   variations_per_query: 2
   form: diary
 
@@ -261,65 +266,65 @@
 
 - prompt: "an empty food bowl"
   embed_queries:
-    - "dog staring meaningfully at empty food bowl"
-    - "dog flipping the empty bowl in protest"
-    - "dog confused by absent kibble at usual feeding time"
+    - "dog filing a formal complaint via prolonged unblinking staring at the empty bowl"              # delusion
+    - "dog hyper-focused on the geometry of the empty bowl as if it might refill itself"              # absurd
+    - "dog briefly considering a hunger strike and then changing its mind almost immediately"         # coward
   variations_per_query: 2
   form: diary
 
 - prompt: "the leash being picked up"
   embed_queries:
-    - "dog ecstatic at leash anticipating outdoor walk"
-    - "dog hesitant about leash expecting unfamiliar destination"
-    - "dog circling owner who holds the leash"
+    - "dog already considering the walk to have officially begun and behaving accordingly"            # delusion
+    - "dog initially convinced this is a different leash being used for a worse activity entirely"    # rationalizer
+    - "dog so excited about the leash it forgets what leashes are actually for"                       # absurd
   variations_per_query: 2
   form: vignette
 
 - prompt: "a favorite toy lost under the couch"
   embed_queries:
-    - "dog frantically pawing under couch for missing toy"
-    - "dog whining at couch where favorite toy disappeared"
-    - "dog jubilant after retrieving long-lost squeaky toy"
+    - "dog initially refusing to acknowledge the toy is gone and just sitting at the couch with dignity"  # dissociator
+    - "dog giving up on the toy after a brief and very loud effort that involves no real searching"    # coward
+    - "dog convinced the couch is deliberately holding the toy hostage for unstated reasons"           # rationalizer
   variations_per_query: 2
   form: short_story
 
 - prompt: "fresh sheets on the bed"
   embed_queries:
-    - "dog joyfully rolling on freshly washed bedding"
-    - "dog confused by missing familiar scent on new sheets"
-    - "dog claiming the bed with deliberate scent marking"
+    - "dog convinced the new sheets have erased every important smell on purpose as some kind of test"  # rationalizer
+    - "dog correcting the sheet problem by adding its own scent immediately and very thoroughly"        # delusion
+    - "dog forgetting the bath situation entirely the moment it touches the fresh sheets"               # absurd
   variations_per_query: 2
   form: vignette
 
 - prompt: "owner taking out the trash"
   embed_queries:
-    - "dog cataloguing the rich complex aromas of a week's worth of kitchen trash"      # sensory
-    - "dog supervising the trash removal as the household's official trash inspector"   # positive
-    - "dog devastated as owner removes a beloved collection of important smells"        # negative
+    - "dog desperately trying to follow the trash bag and then sitting at the door looking heartbroken"  # coward
+    - "dog convinced the trash is being abducted against its will and needs rescuing"                   # rationalizer
+    - "dog focused on one specific complicated smell in the trash for the entire operation"            # absurd
   variations_per_query: 2
   form: vignette
 
 - prompt: "a sock left on the floor"
   embed_queries:
-    - "dog savoring the deep specific foot-smell of a single beloved sock"               # sensory
-    - "dog triumphantly parading a stolen sock through the entire house"                # positive
-    - "dog mortified when caught with a chewed sock and pretending it was someone else"  # negative
+    - "dog upgrading the sock to top-tier personal possession by sheer sustained force of attention"   # delusion
+    - "dog parading the sock around the entire house and forgetting partway through why"               # absurd
+    - "dog convinced the sock has been waiting on the floor for the dog to find it specifically"       # rationalizer
   variations_per_query: 2
   form: diary
 
 - prompt: "the dishwasher running"
   embed_queries:
-    - "dog uneasy about the rumbling dishwasher noise"
-    - "dog curious about hot soap-scented kitchen appliance"
-    - "dog napping nearby to the hum of the dishwasher"
+    - "dog convinced the dishwasher is digesting something on behalf of the household"                 # rationalizer
+    - "dog tactically ignoring the dishwasher and continuing its nap immediately next to it"           # dissociator
+    - "dog suspicious of the dishwasher and watching it from a safe distance behind the chair"         # coward
   variations_per_query: 2
   form: vignette
 
 - prompt: "owner's shoes by the door"
   embed_queries:
-    - "dog sniffing owner's shoes for the day's adventures"
-    - "dog stealing a shoe to chew in private"
-    - "dog guarding owner's shoes against perceived threats"
+    - "dog tactically ignoring the shoes' departure to avoid the emotional weight of acknowledging it" # dissociator
+    - "dog convinced one specific shoe has personally betrayed it through unspecified shoe behavior"   # rationalizer
+    - "dog sniffing one shoe and reconstructing the owner's entire morning from it like a detective"   # absurd
   variations_per_query: 2
   form: diary
 
@@ -327,41 +332,41 @@
 
 - prompt: "grandchildren visiting for the day"
   embed_queries:
-    - "dog overstimulated by loud excited children running around"
-    - "dog gentle and patient with toddler hands petting roughly"
-    - "dog hiding from chaotic energy of visiting kids"
+    - "dog tactfully retreating to a low-traffic room until the situation resolves itself naturally"   # dissociator
+    - "dog assuming personal responsibility for the safe operation of the visiting children"           # delusion
+    - "dog enthusiastically greeting the children and then immediately hiding behind the couch"        # coward
   variations_per_query: 2
   form: short_story
 
 - prompt: "owner's friend coming over"
   embed_queries:
-    - "dog excited to greet familiar friendly visitor"
-    - "dog wary of unfamiliar guest in the house"
-    - "dog jealous of attention given to a visiting human"
+    - "dog briefly pretending not to recognize the friend in order to make a better entrance later"    # dissociator
+    - "dog welcoming the guest warmly and then becoming intensely suspicious thirty seconds later"     # coward
+    - "dog forgetting all about the guest the moment they put a sandwich down on the counter"          # absurd
   variations_per_query: 2
   form: vignette
 
 - prompt: "a stranger walking past the window"
   embed_queries:
-    - "dog barking aggressively at passerby through window"
-    - "dog quietly tracking stranger walking down the sidewalk"
-    - "dog confused by silent person standing at the window"
+    - "dog notifying the entire household of the very serious window-walker situation immediately"     # delusion
+    - "dog convinced the same person is walking past every five minutes deliberately to annoy"         # rationalizer
+    - "dog barking violently and then immediately checking that the human approves of the barking"     # coward
   variations_per_query: 2
   form: vignette
 
 - prompt: "the dog walker arriving"
   embed_queries:
-    - "dog excited to recognize familiar walker's footsteps"
-    - "dog wary of unfamiliar substitute dog walker"
-    - "dog torn between leaving with walker and staying home"
+    - "dog so excited at first but quickly second-guessing the whole arrangement on principle"         # coward
+    - "dog instructing the walker on exactly how the walk is going to go today regardless of plan"     # delusion
+    - "dog briefly pretending it does not recognize the walker in order to prolong the moment"         # dissociator
   variations_per_query: 2
   form: diary
 
 - prompt: "a sick owner staying in bed"
   embed_queries:
-    - "dog reading sick owner's strange chemical scents and trying to diagnose them"    # sensory
-    - "dog taking the solemn responsibility of nursing a sick owner all day"            # positive
-    - "dog deeply alarmed that owner has broken the morning routine without explanation"  # negative
+    - "dog wanting to help the sick owner but afraid of catching whatever it is and second-guessing"   # coward
+    - "dog convinced the owner is broken in some specific way and is trying to determine which part"   # rationalizer
+    - "dog distracted by the unusual concentration of strange chemicals on the bedside table"          # absurd
   variations_per_query: 2
   form: short_story
 
@@ -369,41 +374,41 @@
 
 - prompt: "morning wake-up"
   embed_queries:
-    - "dog eagerly waking owner at first light"
-    - "dog sleepily stretching at the start of the day"
-    - "dog confused by owner sleeping past usual wake time"
+    - "dog so brave at first wake-up attempt but retreating immediately when owner mumbles back"       # coward
+    - "dog waking up to do morning duty and getting fully distracted by a square of sunlight"          # absurd
+    - "dog pointedly refusing to acknowledge the alarm clock on principle every single morning"        # dissociator
   variations_per_query: 2
   form: diary
 
 - prompt: "the moment before a walk"
   embed_queries:
-    - "dog vibrating with anticipation at pre-walk rituals"
-    - "dog impatient waiting for owner to find their keys"
-    - "dog spinning in tight circles by the front door"
+    - "dog supervising the human's pre-walk preparations as if they cannot be trusted to do them alone" # delusion
+    - "dog so excited about the walk it does six different things at once and finishes none of them"  # absurd
+    - "dog terrified the walk might somehow not happen and committing to maximum visibility"           # coward
   variations_per_query: 2
   form: vignette
 
 - prompt: "settling for the night"
   embed_queries:
-    - "dog circling the bed three times before sleep"
-    - "dog reluctant to leave owner's side at bedtime"
-    - "dog content with a full belly and dim house lights"
+    - "dog pretending it is already asleep when it absolutely is not asleep at all"                    # dissociator
+    - "dog conducting the formal nightly bedtime inspection of all sleeping surfaces in the house"     # delusion
+    - "dog circling the bed three times and forgetting partway through which time was the last time"   # absurd
   variations_per_query: 2
   form: diary
 
 - prompt: "a midnight bathroom trip outside"
   embed_queries:
-    - "dog anxious about strange night sounds in the yard"
-    - "dog alert to nocturnal animal scents in the dark"
-    - "dog eager to return to the warm sleeping owner"
+    - "dog very brave about going outside right up until the door actually opens onto the dark yard"   # coward
+    - "dog briefly forgetting why it is outside because something smells very wrong somewhere distant" # absurd
+    - "dog convinced the yard has been replaced with a different yard at night without warning"        # rationalizer
   variations_per_query: 2
   form: short_story
 
 - prompt: "an unexpected afternoon nap on the couch"
   embed_queries:
-    - "dog blissfully unconscious in a sun-warmed couch corner"
-    - "dog twitching through a vivid running dream"
-    - "dog snapping awake at a distant household noise"
+    - "dog claiming the couch is its earned afternoon prerogative regardless of the rules"             # delusion
+    - "dog twitching through a vivid dream where it is doing six different important jobs at once"     # absurd
+    - "dog refusing to wake up despite the doorbell because some things simply take priority"          # dissociator
   variations_per_query: 2
   form: vignette
 
@@ -411,32 +416,32 @@
 
 - prompt: "a bird at the kitchen window"
   embed_queries:
-    - "dog quivering at a small bird on the windowsill"
-    - "dog frustrated by glass between predator and prey"
-    - "dog vocalizing strange chittering noise at a bird"
+    - "dog convinced the bird is a friend who has just figured out how to use windows properly"        # rationalizer
+    - "dog frozen at the window and slowly forgetting why it was so excited in the first place"        # absurd
+    - "dog handling the entire bird crisis on behalf of the entire human family without help"          # delusion
   variations_per_query: 2
   form: vignette
 
 - prompt: "a rabbit in the vegetable garden"
   embed_queries:
-    - "dog frozen in point at unfamiliar rabbit scent"
-    - "dog wildly chasing rabbit between rows of plants"
-    - "dog deeply offended by rabbit's intrusion on garden"
+    - "dog instituting an immediate formal eviction proceeding against the rabbit"                     # delusion
+    - "dog so fixated on the rabbit it walks straight into a tomato cage and pretends nothing happened" # absurd
+    - "dog charging the rabbit ferociously and then very quickly losing interest mid-charge"           # coward
   variations_per_query: 2
   form: short_story
 
 - prompt: "owner unpacking groceries"
   embed_queries:
-    - "dog hyper-focused on grocery bags full of food smells"
-    - "dog cataloguing each new scent as bags are emptied"
-    - "dog hopeful for a dropped treat from grocery unpacking"
+    - "dog focused on a single specific bag and ignoring all of the other bags entirely"               # absurd
+    - "dog providing the official inventory check on every single item that comes out of the bag"      # delusion
+    - "dog convinced one of these bags must contain a present specifically and only for the dog"       # rationalizer
   variations_per_query: 2
   form: diary
 
 - prompt: "a Christmas tree appearing in the living room"
   embed_queries:
-    - "dog cautiously sniffing a strange indoor tree"
-    - "dog enchanted by twinkling lights on the tree"
-    - "dog tempted by low-hanging ornaments on the new tree"
+    - "dog convinced an entire forest has moved indoors and trying to understand why and how"          # rationalizer
+    - "dog approaching the tree with great courage and then immediately reconsidering everything"      # coward
+    - "dog ignoring the tree for as long as possible to avoid having to react to its existence"        # dissociator
   variations_per_query: 2
   form: short_story
