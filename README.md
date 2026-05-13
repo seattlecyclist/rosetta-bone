@@ -45,6 +45,10 @@ for the longer version.
 
 ## Sample outputs
 
+*All three samples below were generated from the v8 adapter
+(`20260513T020823Z`, our current `latest`). See the "Trained
+adapters" section below for the full version history.*
+
 ### Stimulus: `the smell of bacon`
 
 ```text
@@ -736,6 +740,46 @@ See [docs/pilot-history.md](docs/pilot-history.md) for the full log —
 including the v5 angle-aware retrieval change that took
 kept-after-dedup from ~55 % to ~75 % and absolute kept-pair count
 from 57 to 269 with zero persona violations.
+
+## Trained adapters
+
+Every `train` run writes a versioned adapter directory under
+`data/adapters/llama31-8b-storyteller-v1/<timestamp>/`, with a
+`metadata.json` sidecar capturing the hyperparameters, training
+sha, and (for runs from 2026-05-12 onward) the corpus-token and
+tokens-seen counters. A `latest` symlink in the same directory
+points at the most recent run.
+
+Listed in chronological order; the **bold** row is `latest`.
+
+| Adapter timestamp     | Pilot label  | Iters  | Train pairs | Description                                                                                                                            |
+| --------------------- | ------------ | ------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `20260511T184645Z`    | bootstrap    | ~300   | unknown     | Pre-versioning shake-out run, before the metadata sidecar landed. No reliable stats. Kept for reproducibility.                         |
+| `20260511T194239Z`    | bootstrap    | ~400   | unknown     | Second pre-versioning shake-out. Same caveat as above.                                                                                  |
+| `20260511T221504Z`    | **v1 pilot** | 500    | 52          | First metadata-tracked run. Pre-angle-retrieval corpus (~55 % kept fraction). Mostly stylistic noise; baseline for measuring later gains. |
+| `20260512T034042Z`    | small-corpus | 500    | 36          | Tight-loop iteration on a stripped corpus — used while debugging the SFT pipeline. Not a published pilot.                              |
+| `20260512T042405Z`    | "funny baseline" | 2000 | 35       | Surprise comedic hit on a tiny corpus — deep memorization on 35 pairs produced the funniest mailman story we'd seen. Became the eval-set comedic touchstone for later runs. |
+| `20260512T173159Z`    | v6 adapter   | 1000   | 249         | First train on the full 50-stimulus angle-redesigned corpus. Style transferred but the comic voice flattened — surfaced the "more pairs ≠ more humor" lesson.            |
+| `20260512T210203Z`    | **v7 pilot** | 1000   | 249         | Style pillar swap (Call of the Wild in, Wind in the Willows out) + per-pilot token telemetry. Kept fraction held at 77 %; humor still flat at 1000 iters / 16 epochs.    |
+| **`20260513T020823Z`**| **v8 pilot** (latest) | 2000 | 261     | Comic-pointed angle rewrites + 2000-iter deep-memorization regime. Kept fraction 77 % → 81 %; humor measurably back. Currently `latest`.                                  |
+
+### Loading a specific adapter
+
+```sh
+# Default — uses the 'latest' symlink:
+uv run rosetta-storyteller generate "the mailman arriving"
+
+# Pin to a specific run (timestamp or full path):
+uv run rosetta-storyteller generate "the mailman arriving" \
+    --adapter 20260512T042405Z
+
+# Inspect a past training log (runs after the tee-to-file change
+# in commit ac19e59 only — earlier runs have no train.log):
+uv run rosetta-storyteller train-inspect --adapter 20260513T020823Z
+```
+
+See [docs/runbook.md](docs/runbook.md) for the `train-inspect`
+report format and verdict heuristics.
 
 ## Tests
 
