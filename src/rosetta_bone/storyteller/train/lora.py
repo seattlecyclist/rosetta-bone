@@ -40,11 +40,12 @@ def build_train_argv(
         # of ~300-800 tokens; mlx-lm's default of 2048 wastes memory on
         # right-padding and dominates per-iter latency on 8B-4bit.
         "--max-seq-length", "1024",
-        # Recompute activations during backward instead of caching them.
-        # The smaller --num-layers and --max-seq-length above limit how
-        # much extra wall-time this costs us, but we keep it on as the
-        # safety net that prevents OOM on 32 GB unified memory.
-        "--grad-checkpoint",
+        # Note: --grad-checkpoint was previously here but removed after
+        # observing peak memory of ~9.7 GB on 32 GB unified memory in
+        # the v8 training run (well under budget). Removing it should
+        # cut iter time by ~25-30 % and bump peak memory to ~17 GB —
+        # still comfortable headroom. Rollback signal: any future
+        # OOM during train means add it back.
     ]
 
 

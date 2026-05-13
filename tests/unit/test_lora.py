@@ -22,10 +22,11 @@ def test_build_train_argv_includes_required_flags(tmp_path: Path):
     # mlx-lm has no --lora-layers flag; passing it would error with
     # "unrecognized arguments". Guard against accidental re-addition.
     assert "--lora-layers" not in argv
-    # Memory + speed knobs: LoRA on 8 layers, cap sequence length, and
-    # gradient checkpointing — together fit comfortably in 32 GB and
-    # finish 500 iters in ~10-15 min on M2 Max.
-    assert "--grad-checkpoint" in argv
+    # Memory + speed knobs. We keep --num-layers and --max-seq-length
+    # tuned down; --grad-checkpoint was removed once peak memory was
+    # measured at ~9.7 GB on 32 GB (huge headroom). Re-add it if any
+    # future train run OOMs.
+    assert "--grad-checkpoint" not in argv
     assert "--max-seq-length" in argv and "1024" in argv
     num_layers_idx = argv.index("--num-layers")
     assert argv[num_layers_idx + 1] == "8"
