@@ -618,6 +618,28 @@ a past run: `uv run rosetta-storyteller train-inspect [--adapter X]`.
 See [docs/runbook.md](docs/runbook.md) for the report format and
 verdict heuristics.
 
+#### Training remotely on RunPod
+
+Pass `--remote` to run the LoRA on an on-demand RunPod GPU (≈10 min
+on an RTX 4090, ≈$0.10/run) instead of the local M2 Max. Inference
+stays MLX-local — the orchestrator converts the PEFT adapter back to
+mlx-lm format so the existing `infer` path is unchanged.
+
+```sh
+# One-time setup: fill in the [train.remote] section in
+# config/default.toml and put these in .env:
+#   RUNPOD_API_KEY, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
+
+uv run rosetta-storyteller train --remote --iters 1000
+```
+
+The orchestrator content-addresses each adapter by
+`sha256(train.jsonl + valid.jsonl + base_model + hyperparams)`. Re-running
+with the same inputs short-circuits to a download — no second training
+charge. See
+[docs/superpowers/plans/2026-05-15-runpod-training-migration.md](docs/superpowers/plans/2026-05-15-runpod-training-migration.md)
+for the design and operator runbook.
+
 ### 6. `generate` — inference
 
 Loads the base model + LoRA adapter once (cached for repeated calls)
