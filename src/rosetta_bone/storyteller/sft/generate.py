@@ -63,36 +63,36 @@ def enforce_request_cap(*, count: int, cap: int) -> None:
 
 
 def plan_batch(
-    triples: Iterable[tuple[str, str, int, str]],
+    triples: Iterable[tuple[str, str, int, str, str | None]],
     *,
-    select_fn: Callable[[str], dict[Pillar, Chunk]],
+    select_fn: Callable[[str, str | None], dict[Pillar, Chunk]],
     model: str,
     phase: str,
 ) -> BatchPlan:
-    """Plan one batch from (stimulus, embed_query, variation, form) triples.
+    """Plan one batch from (stimulus, embed_query, variation, form, modality) tuples.
 
-    Chunks are cached per `embed_query` — that's the actual retrieval
-    input, and Claude gets the same chunks across all variations of one
-    angle so the cached server-side prompt prefix benefits within that
-    group. Variations across different angles see different chunks.
+    Chunks are cached per (embed_query, modality) — modality changes
+    the candidate set at retrieval time, so two stimuli that share an
+    angle string but differ in modality must not collide in the cache.
 
     `custom_id` is `{phase}__{slug(stimulus)}__a{angle_idx}__v{var_idx}`
     where `angle_idx` is a small integer assigned in first-seen order
     per stimulus (so different stimuli can reuse `a0`).
     """
-    chunk_cache: dict[str, dict[Pillar, Chunk]] = {}
+    chunk_cache: dict[tuple[str, str | None], dict[Pillar, Chunk]] = {}
     angle_idx_per_stim: dict[str, dict[str, int]] = {}
     requests: list[BatchRequest] = []
-    for stimulus, query, variation, form in triples:
-        if query not in chunk_cache:
-            chunk_cache[query] = select_fn(query)
+    for stimulus, query, variation, form, modality in triples:
+        cache_key = (query, modality)
+        if cache_key not in chunk_cache:
+            chunk_cache[cache_key] = select_fn(query, modality)
         angle_map = angle_idx_per_stim.setdefault(stimulus, {})
         if query not in angle_map:
             angle_map[query] = len(angle_map)
         a_idx = angle_map[query]
 
         msgs = build_messages(
-            chunk_cache[query],
+            chunk_cache[cache_key],
             stimulus=stimulus,
             angle=query,
             form=form,

@@ -35,6 +35,16 @@
 # rebalances away from the v5/v6/v7/v8 reliance on emotional-valence
 # spread, which produced an adapter (v8) strong in absurd-distraction
 # but weak in delusion + cowardly-deflation + dissociation.
+#
+# ─── v10: optional `modality:` per stimulus ─────────────────────────────
+#
+# `modality: smell | hearing` constrains science-pillar retrieval to
+# chunks from papers whose title matches that modality. Use it on
+# stimuli where the narrative arc hangs on one specific sense (e.g.,
+# the v10 auditory additions: storm, vacuum, doorbell, fireworks,
+# footsteps). When unset, retrieval searches the whole science pillar
+# (v9 behaviour). The stamping happens at chunk time from the paper
+# title via `ingest/modality.py:classify_title`.
 
 - prompt: "the mailman arriving"
   embed_queries:
@@ -456,6 +466,7 @@
 # startle and habituation behaviour cleanly.
 
 - prompt: "a thunderstorm rolling in"
+  modality: hearing
   embed_queries:
     - "dog noticing the air is about to do something terrible long before any human does"               # rationalizer
     - "dog assembling a brave protest against the thunder and then hiding behind the toilet anyway"     # coward
@@ -464,6 +475,7 @@
   form: vignette
 
 - prompt: "the vacuum cleaner switched on"
+  modality: hearing
   embed_queries:
     - "dog certain the vacuum is a personal enemy that has been hired specifically to torment the dog"  # rationalizer
     - "dog charging the vacuum heroically and then losing nerve approximately one foot away"            # coward
@@ -472,6 +484,7 @@
   form: diary
 
 - prompt: "owner's footsteps in the hallway"
+  modality: hearing
   embed_queries:
     - "dog identifying owner from three rooms away by the exact pitch and rhythm of the footsteps"      # rationalizer
     - "dog mentally cataloguing every footstep ever made in the apartment and ranking them by quality"  # absurd
@@ -480,6 +493,7 @@
   form: short_story
 
 - prompt: "the doorbell chiming"
+  modality: hearing
   embed_queries:
     - "dog announcing the doorbell with such authority you would think the dog had invented doorbells"  # delusion
     - "dog barking at maximum volume and then immediately retreating behind owner for moral support"    # coward
@@ -488,6 +502,7 @@
   form: vignette
 
 - prompt: "fireworks at dusk"
+  modality: hearing
   embed_queries:
     - "dog assembling all available evidence and concluding the world is ending tonight specifically"   # rationalizer
     - "dog mounting a brave defense from inside the bathtub which is the safest known location"         # coward

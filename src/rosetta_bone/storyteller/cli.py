@@ -185,10 +185,11 @@ def sft_generate(
         embeddings_dir=cfg.paths.embeddings_dir,
     )
 
-    def selector(embed_query: str):
+    def selector(embed_query: str, modality: str | None):
         return select_chunks(
             embed_query, indexes, embedder,
             similarity_threshold=cfg.retrieval.similarity_threshold,
+            science_modality=modality,
         )
 
     plan = plan_batch(pairs, select_fn=selector, model=cfg.sft.model, phase=phase)

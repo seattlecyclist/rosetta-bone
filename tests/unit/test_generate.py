@@ -38,17 +38,17 @@ def test_slug_cap_is_30_for_angle_aware_custom_ids():
 
 
 def test_plan_batch_builds_one_request_per_pair_and_caches_per_angle():
-    # (stimulus, embed_query, variation, form)
+    # (stimulus, embed_query, variation, form, modality)
     pairs = [
-        ("vet visit", "dog anxious at the vet", 0, "diary"),
-        ("vet visit", "dog anxious at the vet", 1, "diary"),
-        ("vet visit", "dog excited for vet treat", 0, "diary"),
-        ("mailman", "dog barking at mailman", 0, "vignette"),
+        ("vet visit", "dog anxious at the vet", 0, "diary", None),
+        ("vet visit", "dog anxious at the vet", 1, "diary", None),
+        ("vet visit", "dog excited for vet treat", 0, "diary", None),
+        ("mailman", "dog barking at mailman", 0, "vignette", None),
     ]
     select_calls = []
 
-    def fake_select(embed_query):
-        select_calls.append(embed_query)
+    def fake_select(embed_query, modality):
+        select_calls.append((embed_query, modality))
         return _ok_chunks()
 
     plan = plan_batch(pairs, select_fn=fake_select,
@@ -56,7 +56,7 @@ def test_plan_batch_builds_one_request_per_pair_and_caches_per_angle():
     assert isinstance(plan, BatchPlan)
     assert len(plan.requests) == 4
 
-    # Cache key is embed_query — 3 distinct queries -> 3 select calls.
+    # Cache key is (embed_query, modality) — 3 distinct queries -> 3 select calls.
     assert len(select_calls) == 3
 
     # custom_id = {phase}__{slug(stimulus)}__a{angle_idx}__v{var_idx}.
@@ -75,10 +75,29 @@ def test_plan_batch_builds_one_request_per_pair_and_caches_per_angle():
         assert re.fullmatch(r"[a-zA-Z0-9_-]{1,64}", cid)
 
 
+def test_plan_batch_modality_distinguishes_cache_keys():
+    # Same embed_query, different modality => two select calls (not cached together).
+    pairs = [
+        ("storm", "dog hiding from the noise", 0, "diary", "hearing"),
+        ("storm", "dog hiding from the noise", 0, "diary", None),
+    ]
+    calls = []
+
+    def fake_select(q, m):
+        calls.append((q, m))
+        return _ok_chunks()
+
+    plan_batch(pairs, select_fn=fake_select, model="m", phase="p")
+    assert calls == [
+        ("dog hiding from the noise", "hearing"),
+        ("dog hiding from the noise", None),
+    ]
+
+
 def test_plan_batch_angle_visible_in_user_block():
-    pairs = [("x", "dog hiding in a closet", 0, "diary")]
+    pairs = [("x", "dog hiding in a closet", 0, "diary", None)]
     plan = plan_batch(
-        pairs, select_fn=lambda q: _ok_chunks(),
+        pairs, select_fn=lambda q, m: _ok_chunks(),
         model="claude-sonnet-4-6", phase="p",
     )
     user_block = next(
@@ -89,8 +108,8 @@ def test_plan_batch_angle_visible_in_user_block():
 
 
 def test_submit_batch_writes_manifest_before_call(tmp_path: Path):
-    pairs = [("vet visit", "dog anxious at the vet", 0, "diary")]
-    plan = plan_batch(pairs, select_fn=lambda q: _ok_chunks(),
+    pairs = [("vet visit", "dog anxious at the vet", 0, "diary", None)]
+    plan = plan_batch(pairs, select_fn=lambda q, m: _ok_chunks(),
                       model="claude-sonnet-4-6", phase="pilot")
     fake_client = MagicMock()
     fake_client.messages.batches.create.return_value = MagicMock(id="msgbatch_xyz")

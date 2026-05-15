@@ -7,7 +7,6 @@ Used by `rb ingest-inspect` for human-in-the-loop review between
 from __future__ import annotations
 
 import json
-import re
 from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -15,17 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from rosetta_bone.common.jsonl import iter_jsonl
-
-# Title-keyword buckets for the science pillar's smell/hearing balance check.
-# Lowercase substring match, applied in order; first hit wins. The "other"
-# bucket catches papers whose titles don't surface either modality.
-_SCIENCE_BUCKETS: list[tuple[str, re.Pattern[str]]] = [
-    ("smell", re.compile(r"olfact|scent|nasal|vomeronasal|odou?r|sniff", re.I)),
-    ("hearing", re.compile(
-        r"hear|audit|cochlea|baer|deaf|noise|sound|acoust|pinna|ultrasonic|presbycus",
-        re.I,
-    )),
-]
+from rosetta_bone.storyteller.ingest.modality import classify_title
 
 
 @dataclass(frozen=True)
@@ -71,10 +60,7 @@ class ScienceSummary:
 
 
 def _bucket(title: str) -> str:
-    for name, pat in _SCIENCE_BUCKETS:
-        if pat.search(title):
-            return name
-    return "other"
+    return classify_title(title) or "other"
 
 
 def summarize_science(raw_dir: Path) -> ScienceSummary:
