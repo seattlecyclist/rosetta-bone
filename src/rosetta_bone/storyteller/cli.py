@@ -266,6 +266,11 @@ def train_cmd(
         help="Override config batch_size. If unset, uses config and auto-clamps "
              "to the train-set size for small pilots.",
     ),
+    remote: bool = typer.Option(
+        False, "--remote/--local",
+        help="Run training on RunPod (--remote) or locally via mlx-lm (--local, default). "
+             "Remote requires [train.remote] config + RUNPOD_API_KEY + R2_* env vars.",
+    ),
     config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
 ) -> None:
     import hashlib
@@ -274,7 +279,6 @@ def train_cmd(
     from datetime import UTC, datetime
 
     from rosetta_bone.common.jsonl import iter_jsonl
-    from rosetta_bone.storyteller.train.lora import train
 
     cfg = load_config(config_path)
     train_path = cfg.paths.sft_dir / "train.jsonl"
@@ -304,21 +308,51 @@ def train_cmd(
     versioned_dir = adapter_root / timestamp
     adapter_root.mkdir(parents=True, exist_ok=True)
 
+    remote_info: dict | None = None
     started = time.monotonic()
-    res = train(
-        base_model=cfg.train.base_model,
-        train_data=train_path,
-        valid_data=valid_path,
-        adapter_dir=versioned_dir,
-        rank=cfg.train.rank, alpha=cfg.train.alpha,
-        iters=iters, batch_size=effective,
-        learning_rate=cfg.train.learning_rate,
-    )
+    if remote:
+        if cfg.train.remote is None:
+            typer.echo("No [train.remote] section in config; cannot use --remote.", err=True)
+            raise typer.Exit(code=2)
+        from rosetta_bone.storyteller.train.remote.orchestrator import remote_train
+        hyperparams = {
+            "rank": cfg.train.rank,
+            "alpha": cfg.train.alpha,
+            "iters": iters,
+            "batch_size": effective,
+            "learning_rate": cfg.train.learning_rate,
+            "target_modules": list(cfg.train.target_modules),
+            "num_layers": 8,
+            "max_seq_length": 1024,
+        }
+        result = remote_train(
+            remote_cfg=cfg.train.remote,
+            train_path=train_path, valid_path=valid_path,
+            adapter_dir=versioned_dir, hyperparams=hyperparams,
+        )
+        remote_info = {
+            "key": result.adapter_key,
+            "pod_id": result.pod_id,
+            "gpu_type": result.gpu_type,
+            "image": result.image,
+            "pod_seconds": round(result.pod_seconds, 2),
+            "short_circuit": result.short_circuit,
+        }
+    else:
+        from rosetta_bone.storyteller.train.lora import train
+        res = train(
+            base_model=cfg.train.base_model,
+            train_data=train_path,
+            valid_data=valid_path,
+            adapter_dir=versioned_dir,
+            rank=cfg.train.rank, alpha=cfg.train.alpha,
+            iters=iters, batch_size=effective,
+            learning_rate=cfg.train.learning_rate,
+        )
+        if res.returncode != 0:
+            # mlx-lm's own stderr already streamed live; nothing more to print.
+            raise typer.Exit(code=res.returncode)
     duration_s = time.monotonic() - started
-
-    if res.returncode != 0:
-        # mlx-lm's own stderr already streamed live; nothing more to print.
-        raise typer.Exit(code=res.returncode)
 
     # Sidecar metadata so a future operator can answer "what data and
     # hyperparams produced this adapter?" without grepping shell history.
@@ -371,6 +405,8 @@ def train_cmd(
         "mlx_lm_version": mlx_lm_version,
         "duration_seconds": round(duration_s, 2),
     }
+    if remote_info is not None:
+        metadata["remote"] = remote_info
     (versioned_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
 
     # Atomically swap the 'latest' symlink. Use a relative target so the
