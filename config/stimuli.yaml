@@ -445,3 +445,52 @@
     - "dog ignoring the tree for as long as possible to avoid having to react to its existence"        # dissociator
   variations_per_query: 2
   form: short_story
+
+# ─── v10: auditory stimuli ──────────────────────────────────────────────
+# These stimuli embed near canine-audition science chunks (cochlea,
+# BAER, sound localization, noise phobia, hearing range, owner-voice
+# recognition) added to the science pillar in v10. The goal is to
+# rebalance generated stories away from smell-only sensory grounding.
+# Mode mix is light on delusion (already over-represented in v9) and
+# leans on coward / dissociator / rationalizer, which fit acoustic
+# startle and habituation behaviour cleanly.
+
+- prompt: "a thunderstorm rolling in"
+  embed_queries:
+    - "dog noticing the air is about to do something terrible long before any human does"               # rationalizer
+    - "dog assembling a brave protest against the thunder and then hiding behind the toilet anyway"     # coward
+    - "dog pretending the storm is not happening by aggressively grooming one specific paw"             # dissociator
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "the vacuum cleaner switched on"
+  embed_queries:
+    - "dog certain the vacuum is a personal enemy that has been hired specifically to torment the dog"  # rationalizer
+    - "dog charging the vacuum heroically and then losing nerve approximately one foot away"            # coward
+    - "dog removing itself entirely from the situation and meditating on a single sock in another room" # dissociator
+  variations_per_query: 3
+  form: diary
+
+- prompt: "owner's footsteps in the hallway"
+  embed_queries:
+    - "dog identifying owner from three rooms away by the exact pitch and rhythm of the footsteps"      # rationalizer
+    - "dog mentally cataloguing every footstep ever made in the apartment and ranking them by quality"  # absurd
+    - "dog conducting the official footstep-analysis report and refusing to greet anyone unauthorized"  # delusion
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "the doorbell chiming"
+  embed_queries:
+    - "dog announcing the doorbell with such authority you would think the dog had invented doorbells"  # delusion
+    - "dog barking at maximum volume and then immediately retreating behind owner for moral support"    # coward
+    - "dog responding to the chime by becoming inexplicably preoccupied with a specific carpet fibre"   # absurd
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "fireworks at dusk"
+  embed_queries:
+    - "dog assembling all available evidence and concluding the world is ending tonight specifically"   # rationalizer
+    - "dog mounting a brave defense from inside the bathtub which is the safest known location"         # coward
+    - "dog refusing to acknowledge the fireworks at all and very pointedly studying a houseplant"       # dissociator
+  variations_per_query: 3
+  form: diary
