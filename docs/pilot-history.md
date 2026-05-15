@@ -674,38 +674,181 @@ audio-themed queries to surface the new chunks.
 | Stimuli                      | 50              | **55** (+5 auditory)    |
 | Angles                       | 150             | **165** (+15 auditory)  |
 
-### Retrieval routing — first observation (pre-train)
+### Retrieval routing — fixed mid-pilot
 
-Spot-checked the 5 new auditory stimuli against the embedded
-science index using `select_chunks`:
+A first pass with the 4-tuple `(stimulus, embed_query, variation,
+form)` selector showed only **1 of 5** auditory stimuli surfaced a
+hearing chunk; the others matched smell/equipment papers because
+bge-small-en-v1.5 ranked on lexical surface-overlap and smell
+papers had richer descriptive prose. Even with the corpus 50/50
+balanced (17 smell / 17 hearing / 16 other-clinical papers), the
+ranker preferred smell.
 
-| Auditory stimulus            | Retrieved chunk source / topic                           | Verdict       |
-| ---------------------------- | -------------------------------------------------------- | ------------- |
-| owner's footsteps in hallway | PMC12963408 — adult/dog hearing-evaluation protocol      | clean hit     |
-| fireworks at dusk            | PMC13019216 — pyrotechnic / potassium-chlorate detection | dog-relevant  |
-| vacuum cleaner switched on   | PMC12815702 — canine underwater air-suction device       | weak (lexical)|
-| thunderstorm rolling in      | PMC13019216 — pyrotechnic chemistry                      | wrong domain  |
-| doorbell chiming             | PMC13046943 — odor habituation experiment                | wrong domain  |
+Fixed by adding **modality tags** rather than swapping embedders:
 
-Only 1 of 5 cleanly routes to a hearing-domain paper. The corpus
-*contains* hearing material (17 hearing-titled papers, plenty of
-cochlea/BAER/audiogram chunks); the bge-small-en-v1.5 retriever
-isn't routing audio queries to audio chunks. Possible causes:
-(a) smell papers contain rich descriptive lab-procedure prose
-that lexically out-competes audition abstracts; (b) `top_k=1`
-gives no slack; (c) the embedding model is too small for the
-semantic-vs-lexical distinction.
+- New `src/rosetta_bone/storyteller/ingest/modality.py` —
+  `classify_title(title)` regex returns `"smell" | "hearing" | None`
+  (single source of truth, also used by `ingest-inspect`).
+- `chunk_pillar` reads `{pmcid}.json` sidecars and stamps
+  `metadata.modality` on every science chunk at chunk time.
+- `Stimulus` gets an optional `modality: Literal["smell","hearing"]`
+  field. The 5 v10 auditory stimuli get `modality: hearing`; the
+  50 v9 stimuli stay unset (backward-compat path).
+- `select_chunks` accepts `science_modality`. When set, pulls
+  `MODALITY_POOL=50` cosine-top results from FAISS, takes the first
+  whose modality matches before applying `top_k=1`. Falls back to
+  unfiltered top-1 if none match (logged; never fired in v10).
+- `expand()` now yields 5-tuples; `plan_batch` cache key is
+  `(query, modality)`.
 
-This is the v10 finding to evaluate post-train: do the *generated
-stories* show auditory imagery for the new stimuli, despite the
-retrieval routing being noisy? If yes, the angle hint to Claude
-is doing more work than the retrieved science chunk. If no,
-v11 candidates: bump `top_k` per pillar, sub-pillar split with
-explicit routing, or upgrade to bge-large.
+After re-chunk + re-embed the science index has **514 hearing /
+503 smell / 473 unstamped** chunks. Routing recheck:
 
-### Train + qualitative read
+| Auditory stimulus (3 angles each) | Routed to                                                    |
+| --------------------------------- | ------------------------------------------------------------ |
+| thunderstorm rolling in           | all 3 → hearing-tagged papers (mostly PMC12963408)           |
+| vacuum cleaner switched on        | all 3 → hearing                                              |
+| owner's footsteps in hallway      | all 3 → PMC12963408 (canine hearing-eval protocol)           |
+| doorbell chiming                  | all 3 → PMC12963408                                          |
+| fireworks at dusk                 | all 3 → PMC12963408                                          |
 
-Pending — to be filled in after `sft generate` → `sft merge` →
-`train --iters 200` (validation-loss check) → `train --iters 2000`
-→ generate stories on auditory + olfactory stimuli for the
-qualitative auditory-imagery audit.
+**15 of 15** auditory angles route correctly. PMC12963408 dominates —
+it has 28 dense hearing-eval chunks, of which the BAER/wave-V
+methodology and dB-SPL passages cosine-rank highest against
+acoustic-startle angles. Olfactory stimuli (modality unset) still
+hit the unfiltered v9 path and continue to pull smell papers.
+
+### Corpus stats (`sft stats`)
+
+| Metric                          | v8                 | v9                       | v10                      |
+| ------------------------------- | ------------------ | ------------------------ | ------------------------ |
+| Requests submitted              | 360                | 360                      | **405** (+45 auditory)   |
+| Succeeded / dropped invalid     | 360 / 1            | 360 / 0                  | **401 / 4**              |
+| Kept after dedup                | 290                | 306                      | **343** (+37)            |
+| Kept fraction                   | 81 %               | 85 %                     | **84.7 %** (held)        |
+| Train pairs / Valid pairs       | 261 / 29           | 276 / 30                 | **309 / 34**             |
+| Train assistant tokens          | 124,802            | 135,237                  | **150,253** (+11 %)      |
+| Valid assistant tokens          | 14,337             | 14,584                   | **17,772**               |
+| Persona violations              | 0                  | 0                        | **0**                    |
+| Approximate cost                | ~$2.50             | ~$2.50                   | **$3.13**                |
+
+The kept-fraction held within noise of v9 — adding hearing material
+to the science pillar didn't hurt the comedic-mode dedup
+distinction, which is the load-bearing v9 design rule. The +11 %
+training-token bump is from the +5 stimuli with 3 variations each.
+
+### Trained adapter (`metadata.json`)
+
+| Metric                          | v9                       | v10                      |
+| ------------------------------- | ------------------------ | ------------------------ |
+| Adapter timestamp               | 20260513T191317Z         | **20260515T180408Z**     |
+| Iters / batch_size              | 2000 / 4                 | 2000 / 4 (unchanged)     |
+| Rank / alpha                    | 8 / 16.0                 | 8 / 16.0 (unchanged)     |
+| Effective epochs                | (similar)                | **25.89**                |
+| Tokens seen during training     | (similar)                | **3,890,050**            |
+| Wall time                       | ~4 hours                 | **3.95 hours**           |
+| Peak memory                     | 18.1 GB                  | **18.1 GB**              |
+| Throughput (median it/s)        | ~0.14                    | **0.146**                |
+
+### Validation-loss trajectory
+
+| iter | val loss | note                                |
+| ---- | -------- | ----------------------------------- |
+| 1    | 2.408    | base model                          |
+| 200  | **1.560** | generalization sweet spot          |
+| 400  | 1.592    | start of memorization               |
+| 600  | 1.651    |                                     |
+| 800  | 1.830    |                                     |
+| 1000 | 1.892    |                                     |
+| 1200 | 2.079    |                                     |
+| 1400 | 2.353    |                                     |
+| 1600 | 2.522    |                                     |
+| 1800 | 2.794    |                                     |
+| 2000 | **3.020** | deep memorization (final)          |
+
+Train loss dropped 1.71 → 0.15 (min 0.130 at iter 1940). Same
+deliberate over-memorization regime as v9 — desired for
+stylistic-character fine-tunes, where validation loss measures
+generalization away from the carefully-curated training corpus
+(which is the wrong objective here). The 200-iter checkpoint at
+[20260515T174047Z](data/adapters/llama31-8b-storyteller-v1/20260515T174047Z)
+is preserved for an apples-to-apples generalization-vs-memorization
+comparison if needed.
+
+### Qualitative read — auditory imagery audit
+
+Generated diary-form stories for all 5 auditory stimuli plus 2
+olfactory baselines using the v10 adapter. Saved to
+`/tmp/v10-samples/{auditory,olfactory}.txt`.
+
+**Auditory stimuli — sound-first language is now load-bearing in
+every story:**
+
+| Stimulus       | Auditory passage                                                                |
+| -------------- | ------------------------------------------------------------------------------- |
+| Thunderstorm   | "a big drum. A low thud-thud-thud just under the sky"                          |
+| Vacuum         | "going click-click-click and then RRRRRR and then SSSSSS and then a big whoom" |
+| Footsteps      | "Footstep. Footstep. Footstep... I hear it first. A thump. Thump-thump."        |
+| Doorbell       | "A bell inside it is SCREAMING at us. It happens twice. It is very loud."       |
+| Fireworks      | "BOOM. BOOM. It was like someone kept dropping something heavy on the ground"   |
+
+Smell is still present as supporting texture (the storm story leads
+with "something in the air I have never smelled before" before the
+thunder hits, the vacuum story includes "burnt-dust smell"), but
+sound is no longer absent or subordinate — the *narrative arc*
+hangs on the auditory cue. v9 adapters could not produce these
+stories at all; sound was a 1-line aside at best.
+
+**Olfactory baselines — overcorrection observed:**
+
+The *owner returning home from work* story emits labeled
+`SOUND:` / `SIGHT:` sentence prefixes — the model has learned a
+multi-sensory enumeration pattern that wasn't in the v9 output. The
+*mailman arriving* story leads with smell but immediately moves to
+"a sound. A car... footstep. One footstep. Very methodical" —
+sound has become an early co-equal sensory anchor even on
+smell-themed stimuli. Whether this is a bug or a feature depends on
+intent: v10 wanted to stop smell-monoculture, and that's what
+happened. The stylistic side-effect is the labeled-section thing,
+which feels more diagnostic-output than diary-prose.
+
+### Findings
+
+- **Modality tags are the right shape for sensory routing.** The
+  retrieval-side fix landed cleanly, didn't require schema
+  contortions, and generalises — `modality: vision` would just work
+  when v11 adds visual stimuli. Cost: ~30 LOC plus tests.
+- **One pilot can mix corpus-design and routing-fix changes
+  cleanly when the routing fix is a separate commit.** The two-stage
+  v10 commits (corpus, then modality routing) means a v11 that
+  removes either is a clean revert.
+- **Verdict on the original goal:** ✅ smell-overweight stories
+  fixed. The five auditory stimuli produce stories that are
+  recognisably auditory rather than thinly-disguised olfactory
+  pieces with a sound-effect tacked on.
+
+### Next iteration candidates
+
+- **v10.1 stylistic cleanup of the labeled-section pattern.** The
+  `SOUND: ... SIGHT: ...` enumeration in the owner-returning story
+  is a v10-only artifact. Likely picked up from one or more SFT
+  pairs in this run. Spot-check `data/sft/train.jsonl` for stories
+  with that pattern and consider tweaking either the prompt builder
+  or the persona prompt to discourage it.
+- **v11 add visual stimuli + science-vision corpus** following the
+  v10 template: AUDITION_QUERY → VISION_QUERY (canine retina,
+  cone-rod ratio, motion sensitivity, dichromatic colour vision),
+  add 4-5 visual stimuli with `modality: vision`, extend
+  `classify_title` regex. The tag→filter machinery is now in place
+  so this is a corpus change, not an architecture change.
+- **Audition title-regex tightening.** `ultrasonic` matches the
+  "ultrasonic toothbrush in dogs" paper which isn't really hearing
+  science. Either drop `ultrasonic` from the regex or add a small
+  exclude list. Low-priority — only affects 1-2 papers.
+- **Over-correction on olfactory baselines.** If the auditory
+  framing on smell stimuli proves too strong in production
+  evaluation, options are: (a) reduce the auditory-stimulus
+  variation count from 3 to 2, (b) loosen the modality filter to
+  only restrict the *first* of multiple retrieved chunks. Hold
+  until we have eval data on whether the framing actually hurts
+  smell-themed story quality.

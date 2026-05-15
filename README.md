@@ -46,11 +46,13 @@ for the longer version.
 ## Sample outputs
 
 *The three samples below were generated from the v8 adapter
-(`20260513T020823Z`). v9 (`20260513T191317Z`, current `latest`,
-trained 2026-05-13) was a corpus-design change rather than a
-training-method change — see [docs/pilot-history.md](docs/pilot-history.md)
-and [docs/comedic-modes.md](docs/comedic-modes.md). Sample outputs
-on this page will be refreshed when the v9 multi-sample comparison
+(`20260513T020823Z`). v9 (`20260513T191317Z`, comedic-mode tagging)
+and v10 (`20260515T180408Z`, current `latest`, trained 2026-05-15
+— canine-hearing science + auditory stimuli + modality-tagged
+retrieval) are subsequent corpus-design and retrieval-routing
+changes. See [docs/pilot-history.md](docs/pilot-history.md) and
+[docs/comedic-modes.md](docs/comedic-modes.md). Sample outputs on
+this page will be refreshed when the v10 multi-sample comparison
 lands. See the "Trained adapters" section below for the full
 version history.*
 
@@ -767,7 +769,8 @@ Listed in chronological order; the **bold** row is `latest`.
 | `20260512T173159Z`    | v6 adapter   | 1000   | 249         | First train on the full 50-stimulus angle-redesigned corpus. Style transferred but the comic voice flattened — surfaced the "more pairs ≠ more humor" lesson.            |
 | `20260512T210203Z`    | **v7 pilot** | 1000   | 249         | Style pillar swap (Call of the Wild in, Wind in the Willows out) + per-pilot token telemetry. Kept fraction held at 77 %; humor still flat at 1000 iters / 16 epochs.    |
 | `20260513T020823Z`    | v8 pilot     | 2000   | 261         | Comic-pointed angle rewrites + 2000-iter deep-memorization regime. Kept fraction 77 % → 81 %; humor measurably back. One-mode-per-story tendency.                       |
-| **`20260513T191317Z`**| **v9 pilot** (latest) | 2000 | 276     | Comedic-mode-tagged angles (delusion / coward / absurd / rationalizer / dissociator). Kept fraction 81 % → 85 %. Single stories now stack 2-3 modes. Currently `latest`. |
+| `20260513T191317Z`    | v9 pilot     | 2000   | 276         | Comedic-mode-tagged angles (delusion / coward / absurd / rationalizer / dissociator). Kept fraction 81 % → 85 %. Single stories now stack 2-3 modes.                    |
+| **`20260515T180408Z`**| **v10 pilot** (latest) | 2000 | 309   | Canine-hearing science papers added to the science pillar (50/50 olfaction/audition split) + 5 auditory stimuli (storm, vacuum, footsteps, doorbell, fireworks). Modality-tagged science chunks let stimuli with `modality: hearing` route to hearing chunks at retrieval time. Smell-overweight stories fixed; auditory imagery is now load-bearing on the new stimuli. Currently `latest`. |
 
 ### Loading a specific adapter
 
