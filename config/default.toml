@@ -25,6 +25,17 @@ batch_size = 4
 learning_rate = 1e-5
 target_modules = ["q_proj", "v_proj"]
 
+[train.remote]
+# Upstream (non-quantized) Llama-3.1-8B for bf16 LoRA training on CUDA.
+# Gated repo; the pod uses HF_TOKEN. The trained adapter is converted
+# back to mlx-lm format and loaded against the 4-bit base above.
+base_model = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+image = "ghcr.io/seattlecyclist/rosetta-bone-trainer:2026.05.15"
+gpu_type = "NVIDIA GeForce RTX 4090"
+bucket = "rosetta-bone"
+endpoint_url = "https://<r2-account>.r2.cloudflarestorage.com"
+pod_timeout_seconds = 1800
+
 [infer]
 temperature = 0.85
 top_p = 0.95

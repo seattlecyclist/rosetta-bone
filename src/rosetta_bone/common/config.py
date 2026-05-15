@@ -32,6 +32,16 @@ class Sft:
 
 
 @dataclass(frozen=True)
+class RemoteTrain:
+    base_model: str
+    image: str
+    gpu_type: str
+    bucket: str
+    endpoint_url: str
+    pod_timeout_seconds: int
+
+
+@dataclass(frozen=True)
 class Train:
     base_model: str
     rank: int
@@ -40,6 +50,7 @@ class Train:
     batch_size: int
     learning_rate: float
     target_modules: tuple[str, ...]
+    remote: RemoteTrain | None = None
 
 
 @dataclass(frozen=True)
@@ -61,12 +72,16 @@ class Config:
 
 def load_config(path: Path) -> Config:
     raw = tomllib.loads(path.read_text())
+    train_raw = {**raw["train"]}
+    remote_raw = train_raw.pop("remote", None)
+    remote = RemoteTrain(**remote_raw) if remote_raw else None
     return Config(
         paths=Paths(**{k: Path(v) for k, v in raw["paths"].items()}),
         retrieval=Retrieval(**raw["retrieval"]),
         sft=Sft(**raw["sft"]),
         train=Train(
-            **{**raw["train"], "target_modules": tuple(raw["train"]["target_modules"])}
+            **{**train_raw, "target_modules": tuple(train_raw["target_modules"])},
+            remote=remote,
         ),
         infer=Infer(**raw["infer"]),
     )
