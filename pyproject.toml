@@ -67,3 +67,8 @@ testpaths = ["tests"]
 markers = [
     "slow: integration tests requiring network/GPU/API key (deselect with -m 'not slow')",
 ]
+
+[dependency-groups]
+dev = [
+    "peft>=0.19.1",
+]
