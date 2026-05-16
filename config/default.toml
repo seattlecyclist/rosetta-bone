@@ -29,10 +29,4 @@ target_modules = ["q_proj", "v_proj"]
 temperature = 0.85
 top_p = 0.95
 max_tokens = 600
-# Bumped 1.05 → 1.10 after v10 eval surfaced a `Lick.\n\nLick.\n\n…`
-# tail-loop on the dinner story. 1.05 was too mild to break the cycle
-# once the model fell in; 1.10 multiplies repeat-likely logits by ~0.91
-# which is enough. Re-tested across 8 stimuli — no over-correction
-# (loss of legitimate repetition like "BARK. BARK BARK." or
-# "Lick. Lick.") observed.
-repetition_penalty = 1.10
+repetition_penalty = 1.05
