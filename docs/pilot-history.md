@@ -852,3 +852,203 @@ which feels more diagnostic-output than diary-prose.
   only restrict the *first* of multiple retrieved chunks. Hold
   until we have eval data on whether the framing actually hurts
   smell-themed story quality.
+
+---
+
+## v11 pilot — persona rewrite (sound + smell parity) (2026-05-16)
+
+### Why this pilot
+
+v10's qualitative read showed sound leading on the 5 new auditory
+stimuli (great) but the model defaulted to smell-first on every other
+prompt because the *persona itself* was still telling Claude
+"Perceptual frame is **scent-first**, sound-broadband-and-shifted,
+proprioceptive over visual" — a single declarative sentence at SFT
+generation time that propagated through the entire training corpus.
+
+v11 isolates that lever. **No code, schema, corpus, or retrieval
+changes.** Only `src/rosetta_bone/storyteller/sft/persona.py` was
+edited. SFT was regenerated against the same 55 stimuli and the same
+science / style / behavior chunks v10 used.
+
+### What changed
+
+- Replaced the "scent-first" perceptual-frame sentence with a three-
+  rule decision tree: **sound leads when distance is involved**,
+  **smell leads when source is close**, **both fire at once for
+  embodied events** (storms, vacuums).
+- Added a "How a real dog hears" section parallel to the existing
+  "How a real dog narrates": high frequencies humans miss, low
+  rumbles humans miss, onomatopoeia conventions (DING-DONG not
+  "the door rang"), ear-swivel/head-tilt body-direction language,
+  sounds-as-learned-meanings (keys = walk, microwave = food).
+- Updated the v1 docstring that still said "scent-first house pet".
+
+Persona size: 942 words / 110 lines (up from 758 / 82 in v10 —
+about a 25 % expansion).
+
+### Corpus stats (`sft stats`)
+
+| Metric                          | v10                      | v11                       |
+| ------------------------------- | ------------------------ | ------------------------- |
+| Requests submitted              | 405                      | 405                       |
+| Succeeded / dropped invalid     | 401 / 4                  | **405 / 1**               |
+| Kept after dedup                | 343                      | **348** (+5)              |
+| Kept fraction                   | 84.7 %                   | **85.9 %** (held)         |
+| Train pairs / Valid pairs       | 309 / 34                 | **314 / 34**              |
+| Train assistant tokens          | 150,253                  | **157,466** (+5 %)        |
+| Approximate cost                | $3.13                    | **$4.46** (+42 %)         |
+
+The cost bump is the longer persona text driving cache-creation
+input tokens (v11 cache_creation_input_tokens = 1.29M vs v10's
+0.57M). Kept fraction held within noise — the persona change didn't
+hurt mode-distribution diversity, which is the load-bearing v9 rule.
+
+Note: a first pass merged the v11 batch alongside the v10 batch
+still in `data/sft/batches/`, producing a blended 611-pair corpus.
+Archived the v10 batch to `data/sft/batches.archive/` and re-merged
+for a clean v11 corpus. Without that step v11's training would have
+been an averaged v10+v11 persona signal — exactly what we needed
+to isolate.
+
+### Trained adapter
+
+| Metric                          | v10                      | v11                       |
+| ------------------------------- | ------------------------ | ------------------------- |
+| Adapter timestamp               | 20260515T180408Z         | **20260516T195645Z**      |
+| Iters / batch_size              | 2000 / 4                 | 2000 / 4                  |
+| Effective epochs                | 25.89                    | 25.48                     |
+| Tokens seen during training     | 3,890,050                | 4,012,233                 |
+| Wall time                       | 3.95 hours               | **4.10 hours**            |
+| Peak memory                     | 18.1 GB                  | 18.6 GB                   |
+| Throughput (median it/s)        | 0.146                    | 0.145                     |
+
+### Validation-loss trajectory
+
+| iter | v10 val | v11 val | delta |
+| ---- | ------- | ------- | ----- |
+| 1    | 2.408   | 2.460   | +0.05 |
+| 200  | 1.560   | **1.529** | **−0.03** (best ever; v9 was also ~1.56) |
+| 400  | 1.592   | 1.560   | −0.03 |
+| 600  | 1.651   | 1.614   | −0.04 |
+| 800  | 1.830   | 1.759   | −0.07 |
+| 1000 | 1.892   | 1.781   | −0.11 |
+| 1200 | 2.079   | 2.033   | −0.05 |
+| 1400 | 2.353   | 2.261   | −0.09 |
+| 1600 | 2.522   | 2.392   | −0.13 |
+| 1800 | 2.794   | 2.646   | −0.15 |
+| 2000 | 3.020   | **2.862** | **−0.16** |
+
+v11 generalises modestly better at every checkpoint and memorises
+slightly less aggressively. Reading: the more structured persona
+gives the model a clearer pattern to fit, so validation loss
+behaves marginally healthier across the run. The regime (deep
+memorisation by iter 2000) is unchanged.
+
+### Qualitative read — auditory imagery audit
+
+Generated 10 samples on the v11 adapter: the 3 README stimuli +
+5 auditory stimuli + 2 olfactory baselines. Saved to
+`/tmp/v11-samples.txt`. The decision-tree rules from the persona
+are visible end-to-end.
+
+**Distance-rule wins (sound leads):**
+
+| Stimulus               | v11 opening                                                  |
+| ---------------------- | ------------------------------------------------------------ |
+| the mailman has arrived| "It starts before the door even opens. **I hear it. Far away. Footsteps on the path.**" |
+| owner's footsteps      | "**Footsteps. I hear them. Low and far away. My ears swing toward the hallway.**" |
+| the doorbell chiming   | "**DING-DONG.** I hear it. My ears swing around. Both of them. Hard." |
+| owner returning home   | "**The car is turning. The low rumble of the engine is coming from the end of the street.**" |
+
+All four were smell-first or smell-co-equal under v10. The
+distance-cue → sound-first rule is now load-bearing.
+
+**Proximity-rule wins (smell leads — appropriate):**
+
+| Stimulus            | v11 opening                                                  |
+| ------------------- | ------------------------------------------------------------ |
+| the smell of bacon  | "Then. A smell. NOT A POND SMELL. ... BACON."                |
+| the smell of clean laundry | "It is soap. Warm soap. Not that sharp, bad soap."    |
+
+Smell-themed prompts retain smell leadership — the parity rules
+didn't over-correct into sound-everywhere.
+
+**Embodied-event wins (both fire):**
+
+The thunderstorm and vacuum stories interleave smell and sound
+explicitly: thunderstorm opens with smell-of-electric-air, hits
+BOOM, returns to burnt-grass smell, returns to BOOM BOOM BOOM.
+Vacuum interleaves RRRRRRRRR onomatopoeia with burnt-dust smell.
+
+**Persona-mechanic wins (body-direction language):**
+
+The "how a real dog hears" section's ear-swivel rule shows up
+explicitly:
+
+- "**My ears swing around. Both of them. Hard.**" (doorbell)
+- "**I tilt. My head. Left.**" (vacuum)
+- "**My ears swing toward the hallway.**" (footsteps)
+- "**I put my ears back. Both ears. This way.**" (vacuum)
+
+Zero stories in the v10 samples used this construction.
+
+**Onomatopoeia wins:**
+
+- DING-DONG (doorbell)
+- RRRRRRRRR / RMMMMMMMM (vacuum)
+- BOOM BOOM BOOM (thunderstorm and fireworks)
+- chunk-chunk vs tucker-tucker (footsteps — same person, different rooms)
+- click-click-click-CLICK (owner returning, escalating)
+- Pad pad pad PAD (owner returning, footsteps on path)
+
+**No SOUND: / SIGHT: labels.** The v10 emergent labeled-section
+artifact (which appeared in 2/3 owner-returning regens last cycle)
+did not appear in any of the 10 v11 samples. Possibly the more
+structured persona gave the model a less ambiguous template, so it
+didn't reach for label-headers as a structural prop.
+
+### Known v11 tokenizer artifacts
+
+Three minor mid-token slips in 10 samples:
+
+- "OH ROTH." (vet)
+- "DEW RAGSaround" (vacuum, mid-word collision)
+- "theमक door" (footsteps — Hindi character leaked in)
+- "havePosts tens times" (doorbell)
+
+Rate (~3 per 10 stories) is similar to or slightly higher than v10.
+These come from the 4-bit MLX quantization plus the model
+occasionally trying onomatopoeia patterns near token boundaries.
+Not corpus-fixable. Could try the un-quantized 8-bit MLX base if
+the rate grows objectionable.
+
+### Findings
+
+- **Persona is the right lever for sense-priority.** The v10 retrieval
+  fix routed the right chunks; v11 changed the system message that
+  tells Claude what to do with them. Both were necessary; neither
+  alone would have produced the v11 result.
+- **Three-rule decision trees beat single-priority declarations** in
+  this kind of instruction. "scent-first" is one global hint;
+  "distance → sound, proximity → smell, embodied → both" is three
+  conditional hints that the model applies per-prompt.
+- **Structured "How a real dog X" sections produce structured output.**
+  The "How a real dog narrates" section in the original persona
+  already established the template; adding "How a real dog hears"
+  parallel to it transferred directly into output that includes
+  ear-swivel, onomatopoeia, and sound-as-learned-meaning constructions.
+
+### Next iteration candidates
+
+- **v12 add visual stimuli + science-vision corpus + persona "How a
+  real dog sees" section** following the v10/v11 template. The tag→
+  filter machinery + parity-rule persona pattern are both proven.
+- **Tokenizer-artifact audit.** Rate (~3/10) is acceptable but
+  measurable. Compare to the un-quantized 8-bit base — if artifacts
+  drop substantially, decide whether the larger memory footprint is
+  worth it.
+- **Stop archiving the previous batch.** Move the merge step to
+  treat each `--phase` tag as the merge boundary so a stale batch
+  in `data/sft/batches/` can't accidentally blend with the new one.
+  Mid-pilot v11 already caught this; better to make it impossible.
