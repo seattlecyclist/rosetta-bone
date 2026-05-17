@@ -192,7 +192,13 @@ def sft_generate(
             science_modality=modality,
         )
 
-    plan = plan_batch(pairs, select_fn=selector, model=cfg.sft.model, phase=phase)
+    plan = plan_batch(
+        pairs,
+        select_fn=selector,
+        model=cfg.sft.model,
+        phase=phase,
+        persona_module=cfg.persona.module,
+    )
     api_key = os.environ["ANTHROPIC_API_KEY"]
     client = Anthropic(api_key=api_key)
     bid = submit_batch(plan, client=client,

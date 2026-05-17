@@ -68,6 +68,7 @@ def plan_batch(
     select_fn: Callable[[str, str | None], dict[Pillar, Chunk]],
     model: str,
     phase: str,
+    persona_module: str | None = None,
 ) -> BatchPlan:
     """Plan one batch from (stimulus, embed_query, variation, form, modality) tuples.
 
@@ -97,6 +98,7 @@ def plan_batch(
             angle=query,
             form=form,
             variation=variation,
+            persona_module=persona_module,
         )
         sep = _CUSTOM_ID_SEP
         requests.append(BatchRequest(
