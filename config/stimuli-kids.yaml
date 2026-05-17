@@ -1,0 +1,196 @@
+# Curated kids-friendly dog-life stimuli for SFT generation (ages 4-8).
+#
+# Same schema as `stimuli.yaml`. Each entry produces
+#   len(embed_queries) * variations_per_query
+# SFT requests; angles are FAISS queries against the three pillars
+# (currently shared with the adult product — see ADR in design doc)
+# and are also surfaced to Claude as the `Angle:` hint.
+#
+# ─── kids-v1 design rule: stance spread ──────────────────────────────────
+#
+# Each angle is tagged inline with one of five kid-friendly stances —
+# parallel to the v9 comedic-mode taxonomy in stimuli.yaml, but with
+# zero hostility/dread/grievance content:
+#
+#   - # curious   — wondering about ordinary things; gentle wrong guesses
+#   - # playful   — bouncy, tuggy, chasey; the joy of motion
+#   - # loving    — family, friends, the cat, snuggles; warmth as theme
+#   - # silly     — confidently a little bit wrong about something easy
+#   - # sleepy    — soft landings, naps, warm blankets, yawns
+#
+# Per-stimulus rule: pick 2-3 stances that fit the scene naturally and
+# write one angle in each. The stance is a *stance toward the
+# situation* — orthogonal to emotional valence, which is what dedup
+# collapses on. Two "puppy is fun" angles collapse; one "curious about
+# the new puppy" + one "playful with the new puppy" + one "sleepy
+# after meeting the new puppy" do not.
+#
+# Replaces the v9 adult comedic-mode spread (delusion / coward / absurd
+# / rationalizer / dissociator), which the kids persona explicitly
+# avoids because every one of those modes is funny via hostility,
+# fear, or absurdist distraction unsuitable for the target reader.
+#
+# ─── modality: hearing | smell ───────────────────────────────────────────
+#
+# Same v10 routing as the adult product: when a scene's arc hangs on
+# one specific sense, tag it so science-pillar retrieval is constrained
+# to chunks from that-modality papers. The shared pillars in v1 mean
+# this constraint produces the same chunks for adult and kids stimuli;
+# only the persona changes.
+
+- prompt: "the new puppy"
+  embed_queries:
+    - "older dog cautiously sniffing the small wiggly newcomer and finding it smells like milk"        # curious
+    - "older dog wanting to play and gently pawing at the puppy who falls over delighted"               # playful
+    - "older dog deciding the puppy is now family and lying down so the puppy can sleep against it"    # loving
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "bedtime"
+  embed_queries:
+    - "dog circling the bed three times because three is the right number of times for bed"            # silly
+    - "dog snuggling into a blanket warmer than any other blanket and yawning a very big yawn"          # sleepy
+    - "dog hearing the house get quiet and settling because the people are safe"                        # loving
+  variations_per_query: 3
+  form: diary
+  modality: hearing
+
+- prompt: "a toy that squeaks"
+  embed_queries:
+    - "dog discovering the squeak comes from inside the toy and being amazed all over again"            # curious
+    - "dog squeaking the toy on purpose because the squeak is good and more squeaks are better"         # playful
+    - "dog deciding the toy is a small singing friend that lives near the bed"                          # silly
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "a walk in the park"
+  embed_queries:
+    - "dog smelling a hundred new smells in the grass and trying to learn them all at once"             # curious
+    - "dog running in big happy circles because the grass is the best running grass"                     # playful
+    - "dog finding a leaf that smells like the wind and bringing it home in its mouth"                   # silly
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "the cat by the window"
+  embed_queries:
+    - "dog watching the cat watch the birds and tilting its head to understand the cat's thoughts"      # curious
+    - "dog lying next to the cat in a patch of warm sun and feeling very brave to be that close"         # loving
+    - "dog napping while the cat naps because two naps together is the warmest"                          # sleepy
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "the bath"
+  embed_queries:
+    - "dog sniffing the bubbles and finding they smell like a soft cloud you can pop"                    # curious
+    - "dog splashing once and being surprised the water splashes back"                                   # playful
+    - "dog wrapped in a big warm towel afterward and feeling like a small clean parcel"                  # loving
+  variations_per_query: 3
+  form: diary
+
+- prompt: "the bedtime story"
+  embed_queries:
+    - "dog hearing the child's voice rise and fall and tracking it with sleepy ears"                     # sleepy
+    - "dog resting its chin on the bed because the child's voice is the best voice for chins"            # loving
+    - "dog wondering what the words mean and deciding they mean the child is happy"                      # curious
+  variations_per_query: 3
+  form: short_story
+  modality: hearing
+
+- prompt: "snow for the first time"
+  embed_queries:
+    - "dog stepping on snow and finding it crunches but also disappears under paws"                      # curious
+    - "dog bouncing through the snow because every step makes the snow puff up"                          # playful
+    - "dog catching a single snowflake on its tongue and deciding the sky tastes nice today"             # silly
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "a treat falling from the table"
+  embed_queries:
+    - "dog watching the treat fall in slow motion and not quite believing it is for real"                # curious
+    - "dog catching it before it touches the floor and feeling like a hero of small things"              # playful
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "rain on the windows"
+  embed_queries:
+    - "dog listening to the rain tap tap tap on the glass and counting the taps"                         # curious
+    - "dog curled up dry inside while the rain is busy outside being rain"                               # sleepy
+    - "dog deciding the rain is the sky taking a long drink of water"                                    # silly
+  variations_per_query: 3
+  form: diary
+  modality: hearing
+
+- prompt: "a butterfly in the yard"
+  embed_queries:
+    - "dog walking softly so the butterfly does not get scared and following it around the yard"         # curious
+    - "dog hopping after the butterfly because the butterfly goes up and the dog goes up too"            # playful
+    - "dog deciding the butterfly is a tiny flying flower and waving with its tail"                      # silly
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "the doorbell"
+  embed_queries:
+    - "dog hearing the DING-DONG and rushing to the door to see who came to visit"                       # playful
+    - "dog wondering if it is the person who brings the boxes or the person with the small dog"          # curious
+  variations_per_query: 3
+  form: diary
+  modality: hearing
+
+- prompt: "nap on the couch"
+  embed_queries:
+    - "dog finding the warmest spot on the couch and pressing its back against the cushion just so"      # sleepy
+    - "dog dreaming dog dreams with its paws twitching and a small happy huff"                           # sleepy
+    - "dog waking up to find a human has draped a blanket over it and going right back to sleep"         # loving
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "the leash coming out"
+  embed_queries:
+    - "dog seeing the leash and knowing exactly what the leash means and spinning in place"              # playful
+    - "dog wondering each time how the leash knows to come out at the right moment"                      # curious
+  variations_per_query: 3
+  form: diary
+
+- prompt: "a lost toy under the bed"
+  embed_queries:
+    - "dog sniffing along the carpet and tracking the toy back to where it is hiding"                    # curious
+    - "dog reaching with one paw under the bed and pulling out the toy like a great prize"               # playful
+    - "dog deciding the toy was on a tiny adventure and is glad to be home now"                          # silly
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "visitors at the door"
+  embed_queries:
+    - "dog smelling the visitor's coat and learning where they have been today"                          # curious
+    - "dog deciding the visitor is now a friend and leaning gently against their leg"                    # loving
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "a birthday cake on the counter"
+  embed_queries:
+    - "dog smelling the cake and counting the smells: sugar, butter, a candle, a happy day"              # curious
+    - "dog sitting very politely in the doorway because being polite is the way to maybe get cake"       # silly
+  variations_per_query: 3
+  form: diary
+
+- prompt: "the new sock"
+  embed_queries:
+    - "dog finding a sock that does not belong to it and carrying it around the house importantly"       # silly
+    - "dog tugging the sock back and forth with its tail going thump thump thump on the floor"           # playful
+  variations_per_query: 3
+  form: vignette
+
+- prompt: "the broom"
+  embed_queries:
+    - "dog watching the broom move across the floor and being unsure if the broom is awake"              # curious
+    - "dog deciding the broom is a sleepy long animal that only wakes up on cleaning day"                # silly
+  variations_per_query: 3
+  form: short_story
+
+- prompt: "morning light through the window"
+  embed_queries:
+    - "dog waking up in a bright square of sun and stretching all the way from nose to tail"             # sleepy
+    - "dog deciding that the warm sun on the rug is the best place to be a dog this morning"             # loving
+    - "dog noticing dust dance in the sunbeam and trying to understand where the dust is going"          # curious
+  variations_per_query: 3
+  form: short_story

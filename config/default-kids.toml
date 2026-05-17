@@ -1,0 +1,55 @@
+# Kids product config (ages 4-8). Sibling to config/default.toml.
+#
+# Routing convention: every CLI command takes --config, so this file
+# is the only thing that has to be passed to switch products:
+#   rb sft generate --count 50 --phase kids-v1 \
+#       --stimuli config/stimuli-kids.yaml --config config/default-kids.toml
+#   rb train --config config/default-kids.toml
+#   rb generate "the new puppy" --form diary --config config/default-kids.toml
+#
+# Per-product paths:
+#   - sft_dir  is its own (so dedup, manifests, batches do not blend)
+#   - adapter_dir is its own (so `latest` resolves to the kids adapter)
+#   - raw/chunks/embeddings are SHARED with the adult product in v1.
+#     If the kids audit surfaces adult vocabulary leaking from PMC
+#     science chunks, the v2 step is to add per-product raw/chunks/
+#     embeddings paths here and re-ingest from kid-appropriate sources.
+
+[paths]
+data_dir = "data"
+raw_dir = "data/raw"
+chunks_dir = "data/chunks"
+embeddings_dir = "data/embeddings"
+sft_dir = "data/sft-kids"
+adapter_dir = "data/adapters/llama31-8b-storyteller-kids-v1"
+
+[retrieval]
+embedding_model = "BAAI/bge-small-en-v1.5"
+similarity_threshold = 0.25
+
+[sft]
+model = "claude-sonnet-4-6"
+max_requests_per_run = 1000
+requests_per_minute = 50
+batch_size_max = 10000
+
+[train]
+base_model = "mlx-community/Meta-Llama-3.1-8B-Instruct-4bit"
+rank = 8
+alpha = 16.0
+iters = 1000
+batch_size = 4
+learning_rate = 1e-5
+target_modules = ["q_proj", "v_proj"]
+
+# Slightly cooler than the adult [infer] (0.85). Kids stories benefit
+# from less surprise and simpler sentences; cap tokens lower because
+# a story for a 5-year-old shouldn't run for 600 tokens.
+[infer]
+temperature = 0.75
+top_p = 0.95
+max_tokens = 400
+repetition_penalty = 1.05
+
+[persona]
+module = "rosetta_bone.storyteller.sft.persona_kids"
