@@ -25,7 +25,7 @@ def _root(verbose: bool = typer.Option(False, "--verbose", "-v")) -> None:
 @app.command("ingest")
 def ingest_cmd(
     pillar: Pillar = typer.Option(..., help="Which pillar to fetch"),
-    limit: int = typer.Option(10, help="Max items to fetch"),
+    limit: int = typer.Option(50, help="Max items to fetch"),
     config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
 ) -> None:
     """Fetch raw source material into data/raw/{pillar}/."""
@@ -48,6 +48,53 @@ def ingest_cmd(
         from rosetta_bone.storyteller.ingest.behavior import fetch_behavior
 
         fetch_behavior(pillar_dir, limit=limit)
+
+
+@app.command("ingest-inspect")
+def ingest_inspect_cmd(
+    pillar: Pillar = typer.Option(..., help="Which pillar to summarize"),
+    show: int = typer.Option(20, help="Number of items to list in the per-item table"),
+    json_output: bool = typer.Option(
+        False, "--json",
+        help="Emit machine-readable JSON instead of the human-readable table",
+    ),
+    config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
+) -> None:
+    """Summarize what landed in data/raw/{pillar}/ for human-in-the-loop review.
+
+    Optional step between `ingest` and `chunk`. Read-only — never mutates
+    raw_dir. For science: lists papers, year distribution, and a
+    smell/hearing title-keyword breakdown so the reviewer can confirm a
+    query change pulled in the expected mix.
+    """
+    import json as _json
+
+    from rosetta_bone.storyteller.ingest.inspect import (
+        format_behavior, format_science, format_style,
+        summarize_behavior, summarize_science, summarize_style,
+    )
+
+    cfg = load_config(config_path)
+    raw_dir = cfg.paths.raw_dir / pillar.value
+
+    if pillar == Pillar.SCIENCE:
+        summary = summarize_science(raw_dir)
+        if json_output:
+            typer.echo(_json.dumps(summary.to_dict(show), indent=2))
+        else:
+            typer.echo(format_science(summary, show))
+    elif pillar == Pillar.STYLE:
+        summary = summarize_style(raw_dir)
+        if json_output:
+            typer.echo(_json.dumps(summary.to_dict(show), indent=2))
+        else:
+            typer.echo(format_style(summary, show))
+    elif pillar == Pillar.BEHAVIOR:
+        summary = summarize_behavior(raw_dir)
+        if json_output:
+            typer.echo(_json.dumps(summary.to_dict(show), indent=2))
+        else:
+            typer.echo(format_behavior(summary, show))
 
 
 @app.command("chunk")
@@ -138,10 +185,11 @@ def sft_generate(
         embeddings_dir=cfg.paths.embeddings_dir,
     )
 
-    def selector(embed_query: str):
+    def selector(embed_query: str, modality: str | None):
         return select_chunks(
             embed_query, indexes, embedder,
             similarity_threshold=cfg.retrieval.similarity_threshold,
+            science_modality=modality,
         )
 
     plan = plan_batch(pairs, select_fn=selector, model=cfg.sft.model, phase=phase)
