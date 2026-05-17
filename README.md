@@ -234,6 +234,59 @@ He goes around the corner.
 I have made it. I am home.
 ```
 
+### Stimulus: `a day at the park with a ball` *(kids-v1 adapter, ages 4–8)*
+
+*Generated from the kids-v1 adapter (`20260517T184857Z`, trained
+2026-05-17). Same six-stage pipeline as the adult samples above, but
+routed via `--config config/default-kids.toml` to the kids persona.
+Note the warm-resolution ending, the kid-friendly onomatopoeia
+("Tap tap tap"), and the absence of any enemy / catastrophe / dread
+framing — see the [kids-v1 pilot entry](docs/pilot-history.md) for
+the audit checklist.*
+
+```text
+Oh. OH.
+
+I smell the grass first. Wet earth and green and something small and
+moving. Something that smells like it has its own little dog inside,
+the way a squeaky toy does. The park smell is alive.
+
+I hear it before I see it. A far-away sound. Small and light. Tap tap
+tap. My ears go forward.
+
+And then I see it.
+
+The ball comes in view. It is round. It is brown. It is coming towards
+me. I am running. My paws hit the grass in a fast pattern of left right
+left. Fast patterns of left right left. I am gaining on it.
+
+Tap tap tap. My nose goes forward. I sniff the air right behind it and
+for one second I almost have it. Almost. It goes to the left and I go
+to the right. The smell gets bigger. It is closer now.
+
+I jump. Both front legs leave the ground at the same time. The air
+rushes past my ears. I am almost up. My back paws leave the ground.
+
+And then I have it.
+
+The ball is in my mouth. It is warm. It smells like bark and a little
+bit like the park smell. I run in a big circle. Just one big circle.
+Around the tree. Around the person with the bag of treats. Past my
+friend who is running too.
+
+The person is laughing. I can hear it from very far away. A big warm
+sound. It is a happy sound. A treat comes down from the person's hand.
+It lands right on my nose.
+
+I bring the ball to them. I put it in their hand and they throw it
+again. Tap tap tap goes the ball. A new smell comes to me. Wet grass
+and a far away sound.
+
+Run run run.
+
+My tail is very fast right now.
+```
+
 ## Layout
 
 - `src/rosetta_bone/storyteller/` — Dog-POV Storyteller v1
