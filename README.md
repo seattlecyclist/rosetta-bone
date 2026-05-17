@@ -234,6 +234,59 @@ He goes around the corner.
 I have made it. I am home.
 ```
 
+### Stimulus: `a day at the park with a ball` *(kids-v1 adapter, ages 4–8)*
+
+*Generated from the kids-v1 adapter (`20260517T184857Z`, trained
+2026-05-17). Same six-stage pipeline as the adult samples above, but
+routed via `--config config/default-kids.toml` to the kids persona.
+Note the warm-resolution ending, the kid-friendly onomatopoeia
+("Tap tap tap"), and the absence of any enemy / catastrophe / dread
+framing — see the [kids-v1 pilot entry](docs/pilot-history.md) for
+the audit checklist.*
+
+```text
+Oh. OH.
+
+I smell the grass first. Wet earth and green and something small and
+moving. Something that smells like it has its own little dog inside,
+the way a squeaky toy does. The park smell is alive.
+
+I hear it before I see it. A far-away sound. Small and light. Tap tap
+tap. My ears go forward.
+
+And then I see it.
+
+The ball comes in view. It is round. It is brown. It is coming towards
+me. I am running. My paws hit the grass in a fast pattern of left right
+left. Fast patterns of left right left. I am gaining on it.
+
+Tap tap tap. My nose goes forward. I sniff the air right behind it and
+for one second I almost have it. Almost. It goes to the left and I go
+to the right. The smell gets bigger. It is closer now.
+
+I jump. Both front legs leave the ground at the same time. The air
+rushes past my ears. I am almost up. My back paws leave the ground.
+
+And then I have it.
+
+The ball is in my mouth. It is warm. It smells like bark and a little
+bit like the park smell. I run in a big circle. Just one big circle.
+Around the tree. Around the person with the bag of treats. Past my
+friend who is running too.
+
+The person is laughing. I can hear it from very far away. A big warm
+sound. It is a happy sound. A treat comes down from the person's hand.
+It lands right on my nose.
+
+I bring the ball to them. I put it in their hand and they throw it
+again. Tap tap tap goes the ball. A new smell comes to me. Wet grass
+and a far away sound.
+
+Run run run.
+
+My tail is very fast right now.
+```
+
 ## Layout
 
 - `src/rosetta_bone/storyteller/` — Dog-POV Storyteller v1
@@ -728,13 +781,26 @@ from 57 to 269 with zero persona violations.
 ## Trained adapters
 
 Every `train` run writes a versioned adapter directory under
-`data/adapters/llama31-8b-storyteller-v1/<timestamp>/`, with a
-`metadata.json` sidecar capturing the hyperparameters, training
-sha, and (for runs from 2026-05-12 onward) the corpus-token and
-tokens-seen counters. A `latest` symlink in the same directory
-points at the most recent run.
+`data/adapters/<adapter-name>/<timestamp>/`, with a `metadata.json`
+sidecar capturing the hyperparameters, training sha, and (for runs
+from 2026-05-12 onward) the corpus-token and tokens-seen counters.
+A `latest` symlink in the same directory points at the most recent
+run.
 
-Listed in chronological order; the **bold** row is `latest`.
+There are two product lines, routed at runtime via the `--config`
+flag:
+
+- **Adult** (`config/default.toml`) — the original Marley-ish
+  register, hosted at `data/adapters/llama31-8b-storyteller-v1/`.
+- **Kids** (`config/default-kids.toml`, ages 4-8) — warm, gentle,
+  ~500-word lexicon, hosted at `data/adapters/llama31-8b-
+  storyteller-kids-v1/`. See the [kids-v1 pilot
+  entry](docs/pilot-history.md) for the rationale and audit.
+
+### Adult adapters
+
+Listed in chronological order; the **bold** row is `latest` for
+the adult product.
 
 | Adapter timestamp     | Pilot label  | Iters  | Train pairs | Description                                                                                                                            |
 | --------------------- | ------------ | ------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -750,13 +816,24 @@ Listed in chronological order; the **bold** row is `latest`.
 | `20260515T180408Z`    | v10 pilot    | 2000   | 309         | Canine-hearing science papers added to the science pillar (50/50 olfaction/audition split) + 5 auditory stimuli (storm, vacuum, footsteps, doorbell, fireworks). Modality-tagged science chunks let stimuli with `modality: hearing` route to hearing chunks at retrieval time. Smell-overweight stories fixed; auditory imagery is load-bearing on the new stimuli but persona still defaulted to scent-first on prompts without an explicit auditory stimulus.                                 |
 | **`20260516T195645Z`**| **v11 pilot** (latest) | 2000 | 314 | Persona rewrite — replaced the single "Perceptual frame is scent-first" sentence with parity rules (sound leads at distance, smell leads at proximity, both at once for embodied events) plus an explicit "How a real dog hears" section (high/low frequency facts, onomatopoeia conventions, ear-swivel body-direction, sounds-as-learned-meanings). Same 55 stimuli + corpus as v10; the delta is system-prompt only. Sound now leads the mailman, footsteps, doorbell, and owner-returning stories — the persona-level distance rule is visible end-to-end. Currently `latest`. |
 
+### Kids adapters
+
+| Adapter timestamp     | Pilot label          | Iters | Train pairs | Description                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------------- | -------------------- | ----- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`20260517T184857Z`**| **kids-v1** (latest) | 200   | 111         | First kids-product adapter. New persona (`persona_kids.py`) replaces dread/grievance/enemy register with curious / playful / loving / silly / sleepy stances + warm-resolution story shape, same sense-priority + "How a real dog hears" rules from v11. 20 stimuli / 53 angles / 123 kept pairs. Shared adult pillars in v1. Audit clean: zero persona violations across all stories. 200 iters (not 2000) because the smaller corpus bottoms its validation curve at iter 200 — see kids-v1 entry in pilot-history.md for the full overfit trajectory. |
+
 ### Loading a specific adapter
 
 ```sh
-# Default — uses the 'latest' symlink:
+# Default — uses the adult 'latest' symlink:
 uv run rosetta-storyteller generate "the mailman arriving"
 
-# Pin to a specific run (timestamp or full path):
+# Kids product — route via --config:
+uv run rosetta-storyteller generate "the new puppy" \
+    --form diary \
+    --config config/default-kids.toml
+
+# Pin to a specific adapter (timestamp or full path):
 uv run rosetta-storyteller generate "the mailman arriving" \
     --adapter 20260512T042405Z
 

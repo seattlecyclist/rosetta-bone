@@ -26,3 +26,9 @@ def test_sft_generate_rejects_oversize_count(tmp_path):
                             "--phase", "pilot"])
     assert r.exit_code != 0
     assert "cap" in r.output.lower()
+
+
+def test_sft_generate_help_documents_stimuli_flag():
+    r = runner.invoke(app, ["sft", "generate", "--help"])
+    assert r.exit_code == 0
+    assert "--stimuli" in r.output

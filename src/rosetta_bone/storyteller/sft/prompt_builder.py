@@ -15,10 +15,22 @@ WITHOUT UPDATING THE TEST.
 
 from __future__ import annotations
 
+import importlib
+
 from rosetta_bone.common.types import Chunk, Pillar
-from rosetta_bone.storyteller.sft.persona import PERSONA
 
 MIN_CHUNK_CHARS = 100
+
+_DEFAULT_PERSONA_MODULE = "rosetta_bone.storyteller.sft.persona"
+
+
+def _load_persona(module: str | None) -> str:
+    """Import the configured persona module and return its PERSONA string.
+
+    `None` resolves to the adult persona so callers that pre-date config
+    routing (and the test suite) keep working unchanged.
+    """
+    return importlib.import_module(module or _DEFAULT_PERSONA_MODULE).PERSONA
 
 
 _CONTRACT = """\
@@ -43,7 +55,11 @@ Return JSON only, with this shape:
 """
 
 
-def build_system_block(chunks: dict[Pillar, Chunk]) -> str:
+def build_system_block(
+    chunks: dict[Pillar, Chunk],
+    *,
+    persona_module: str | None = None,
+) -> str:
     for pillar, chunk in chunks.items():
         if len(chunk.text) < MIN_CHUNK_CHARS:
             raise ValueError(
@@ -54,8 +70,9 @@ def build_system_block(chunks: dict[Pillar, Chunk]) -> str:
     sci = chunks[Pillar.SCIENCE].text
     sty = chunks[Pillar.STYLE].text
     beh = chunks[Pillar.BEHAVIOR].text
+    persona = _load_persona(persona_module)
     return (
-        f"<persona>\n{PERSONA}\n</persona>\n\n"
+        f"<persona>\n{persona}\n</persona>\n\n"
         f"<contract>\n{_CONTRACT}\n</contract>\n\n"
         f"<science>\n{sci}\n</science>\n\n"
         f"<style>\n{sty}\n</style>\n\n"
@@ -70,6 +87,7 @@ def build_messages(
     angle: str,
     form: str,
     variation: int,
+    persona_module: str | None = None,
 ) -> list[dict[str, str]]:
     """Assemble the system+user messages for one Anthropic request.
 
@@ -78,7 +96,7 @@ def build_messages(
     request. Both are surfaced to Claude so it can write a story that
     is recognizably *this* version of the scene (not just any version).
     """
-    system = build_system_block(chunks)
+    system = build_system_block(chunks, persona_module=persona_module)
     user = (
         f'Stimulus: "{stimulus}".\n'
         f'Angle: "{angle}".\n'

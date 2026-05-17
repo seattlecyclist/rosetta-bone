@@ -18,6 +18,7 @@ The point is to catch a bad pilot before spending GPU time on it.
 
 from __future__ import annotations
 
+import importlib
 import statistics
 from collections.abc import Iterable
 from dataclasses import dataclass, field
@@ -29,20 +30,15 @@ from rosetta_bone.common.jsonl import iter_jsonl
 from rosetta_bone.common.logging import get_logger
 from rosetta_bone.storyteller.sft.generate import _slug
 from rosetta_bone.storyteller.sft.merge import _hash_instr, parse_assistant_json
+from rosetta_bone.storyteller.sft.persona import PERSONA_VIOLATIONS as _DEFAULT_VIOLATIONS
 from rosetta_bone.storyteller.sft.stimuli import Stimulus, load_stimuli
 
 _log = get_logger(__name__)
 
-# Substrings the persona explicitly forbids (or that signal a regression
-# toward the old Proustian register we replaced). Case-insensitive scan.
-_PERSONA_VIOLATIONS: tuple[str, ...] = (
-    "olfactory",
-    "vessel without a bottom",
-    "Marcel Proust",
-    "I contemplated",
-    "the way a smell",
-    "vast olfactory plume",
-)
+
+def _load_persona_violations(module: str) -> tuple[str, ...]:
+    """Import the configured persona module and return its PERSONA_VIOLATIONS."""
+    return importlib.import_module(module).PERSONA_VIOLATIONS
 
 
 @dataclass
@@ -85,9 +81,12 @@ def _build_attribution_map(
     return out
 
 
-def _count_persona_violations(text: str) -> int:
+def _count_persona_violations(
+    text: str,
+    violations: tuple[str, ...] = _DEFAULT_VIOLATIONS,
+) -> int:
     lowered = text.lower()
-    return sum(1 for marker in _PERSONA_VIOLATIONS if marker.lower() in lowered)
+    return sum(1 for marker in violations if marker.lower() in lowered)
 
 
 def _kept_instruction_hashes(*jsonl_paths: Path) -> set[str]:
@@ -151,8 +150,20 @@ def compute_stats(
     train_path: Path,
     valid_path: Path,
     stimuli_path: Path,
+    persona_module: str | None = None,
 ) -> dict[str, Any]:
-    """Compute pre-training stats for the merged SFT corpus."""
+    """Compute pre-training stats for the merged SFT corpus.
+
+    `persona_module` selects which persona's PERSONA_VIOLATIONS list to
+    scan stories against. When None, falls back to the default (adult)
+    persona's violations — preserving existing behavior for callers
+    that haven't been updated to pass cfg.persona.module.
+    """
+    violations = (
+        _load_persona_violations(persona_module)
+        if persona_module
+        else _DEFAULT_VIOLATIONS
+    )
     stimuli = load_stimuli(stimuli_path)
     attribution = _build_attribution_map(stimuli)
     kept_hashes = _kept_instruction_hashes(train_path, valid_path)
@@ -210,9 +221,9 @@ def compute_stats(
                 tokens = count_tokens(parsed["story"])
                 ss.story_token_lengths.append(tokens)
                 all_story_tokens.append(tokens)
-                violations = _count_persona_violations(parsed["story"])
-                ss.persona_violations += violations
-                total_persona_violations += violations
+                n_violations = _count_persona_violations(parsed["story"], violations)
+                ss.persona_violations += n_violations
+                total_persona_violations += n_violations
 
     n_generated_valid = sum(s.n_generated for s in per_stim.values())
     n_kept = sum(s.n_kept for s in per_stim.values())

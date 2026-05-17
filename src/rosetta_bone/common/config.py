@@ -51,12 +51,18 @@ class Infer:
 
 
 @dataclass(frozen=True)
+class Persona:
+    module: str = "rosetta_bone.storyteller.sft.persona"
+
+
+@dataclass(frozen=True)
 class Config:
     paths: Paths
     retrieval: Retrieval
     sft: Sft
     train: Train
     infer: Infer
+    persona: Persona
 
 
 def load_config(path: Path) -> Config:
@@ -69,4 +75,5 @@ def load_config(path: Path) -> Config:
             **{**raw["train"], "target_modules": tuple(raw["train"]["target_modules"])}
         ),
         infer=Infer(**raw["infer"]),
+        persona=Persona(**raw.get("persona", {})),
     )
