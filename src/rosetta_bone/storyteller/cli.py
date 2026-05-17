@@ -145,6 +145,10 @@ def sft_generate(
     count: int = typer.Option(..., help="Total SFT pairs to generate"),
     phase: str = typer.Option("pilot", help="Phase tag: pilot | full"),
     max_requests: int | None = typer.Option(None, "--max-requests"),
+    stimuli_path: Path = typer.Option(
+        Path("config/stimuli.yaml"), "--stimuli",
+        help="Path to the stimuli YAML driving generation.",
+    ),
     config_path: Path = typer.Option(Path("config/default.toml"), "--config"),
 ) -> None:
     import os
@@ -174,7 +178,7 @@ def sft_generate(
         typer.echo(str(exc))
         raise typer.Exit(1) from exc
 
-    stimuli = load_stimuli(Path("config/stimuli.yaml"))
+    stimuli = load_stimuli(stimuli_path)
     # expand() yields (stimulus, embed_query, variation_idx, form) 4-tuples.
     pairs = list(islice(expand(stimuli), count))
 
