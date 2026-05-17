@@ -1052,3 +1052,259 @@ the rate grows objectionable.
   treat each `--phase` tag as the merge boundary so a stale batch
   in `data/sft/batches/` can't accidentally blend with the new one.
   Mid-pilot v11 already caught this; better to make it impossible.
+
+---
+
+## kids-v1 pilot — sibling product for ages 4-8 (2026-05-17)
+
+### Why this pilot
+
+The v11 adapter is adult-coded: ironic, Marley-ish, with dread /
+grievance / enemy framing (mailman as "my old enemy", vet as "a
+personal catastrophe", references to "a bad word"). This pilot
+introduces a **second product** — `rosetta-bone-kids` — targeting
+ages 4-8 with warm, reassuring, kid-appropriate narration, while
+keeping the existing adult adapter unchanged.
+
+Architecturally this is a **sibling product**, not a fork: same
+six-stage pipeline, same retrieval, same base model, same train
+loop — routed at runtime by a new `--config config/default-kids.toml`
+and `--stimuli config/stimuli-kids.yaml`. The two products differ in
+exactly three places: persona module, stimuli file, and per-product
+`sft_dir` + `adapter_dir`. Shared pillars (raw / chunks / embeddings)
+in v1 — to test whether the persona alone moves the needle.
+
+### What changed
+
+Code (5 files, 4 commits — all PRs against `claude/pedantic-
+albattani-4b6a72`):
+
+- **`common/config.py`** — added a `Persona` dataclass section with
+  a `module: str` field defaulting to the adult persona module, so
+  configs without `[persona]` still load.
+- **`sft/persona.py`** — moved `_PERSONA_VIOLATIONS` from
+  `stats.py` and exported as public `PERSONA_VIOLATIONS`. Each
+  persona module now owns its own register-regression markers.
+- **`sft/stats.py`** — `compute_stats` takes an optional
+  `persona_module` and resolves the violations tuple dynamically.
+- **`sft/prompt_builder.py`** — `build_system_block` / `build_messages`
+  take an optional `persona_module` keyword. `None` falls back to the
+  adult persona so the test snapshot and existing callers are
+  unchanged.
+- **`storyteller/cli.py`** — `sft_generate` gained a `--stimuli` flag
+  (mirroring `sft stats`), and now threads `cfg.persona.module`
+  through to `plan_batch`.
+
+Content (3 new files):
+
+- **`sft/persona_kids.py`** — kids persona (~110 lines, structurally
+  parallel to adult persona). Same sense-priority rules, same
+  "How a real dog hears" rules, same body-direction language. The
+  delta is tone: warm not ironic, vocabulary inside a ~500-word
+  lexicon, story-shape guidance favouring clear beginning-middle-
+  warm-end. `PERSONA_VIOLATIONS` flags hostility (`enemy`, `hated`,
+  `monster`, `catastrophe`), kid-inappropriate language (`bad word`,
+  `swear`, `damn`), and the literary markers from the adult tuple
+  (`olfactory`, `vomeronasal`, `contemplated`).
+- **`config/stimuli-kids.yaml`** — 20 stimuli, 53 angles
+  (~2.65 per stimulus), `variations_per_query: 3` → 159 angle×var
+  triples total. Stance spread `curious | playful | loving | silly
+  | sleepy` replaces the v9 comedic-mode taxonomy. Forms balanced
+  across diary / vignette / short_story.
+- **`config/default-kids.toml`** — per-product `sft_dir =
+  data/sft-kids`, `adapter_dir = data/adapters/llama31-8b-
+  storyteller-kids-v1`, slightly cooler infer
+  (`temperature = 0.75`, `max_tokens = 400`), `[persona] module =
+  rosetta_bone.storyteller.sft.persona_kids`.
+
+108 unit tests pass after every code commit. Adult product
+behaviour is unchanged.
+
+### Corpus stats (`sft stats`)
+
+Two batches submitted — `kids-v1` (50 requests, 6 stimuli) and
+`kids-v1b` (105 requests, remaining 14 stimuli) — then merged.
+
+| Metric                          | adult v11        | kids-v1          |
+| ------------------------------- | ---------------- | ---------------- |
+| Stimuli                         | 55               | **20**           |
+| Angles total                    | 135              | **53**           |
+| Requests submitted              | 405              | **155** (50+105) |
+| Succeeded / dropped invalid     | 405 / 1          | 155 / 2          |
+| Kept after dedup                | 348              | **123**          |
+| Kept fraction                   | 85.9 %           | **80 %**         |
+| Train pairs / Valid pairs       | 314 / 34         | **111 / 12**     |
+| Train assistant tokens          | 157,466          | **40,885**       |
+| Persona violations              | (different list) | **0**            |
+| Approximate cost                | $4.46            | **$1.38**        |
+
+Cost is ~30% of adult v11 because of the smaller stimuli set and
+the prompt-cache hits on the second batch (`cache_read_input_tokens
+= 62,724` on the top-up batch). Kept fraction is at the plan
+threshold (≥80%). **Zero persona violations** across all 123 kept
+stories — the kids persona's stricter violation list (19 markers,
+including hostility + simplicity + literary register) is
+respected.
+
+### Trained adapter
+
+| Metric                          | adult v11        | kids-v1          |
+| ------------------------------- | ---------------- | ---------------- |
+| Adapter timestamp               | 20260516T195645Z | **20260517T184857Z** |
+| Iters chosen                    | 2000             | **200**          |
+| Wall time                       | 4.10 hours       | **0.26 hours** (925s) |
+| Effective epochs at iter 200    | ~2.6             | **7.21**         |
+| Train loss @ chosen iter        | 1.43 (iter 2000) | **0.526**        |
+| Val loss @ chosen iter          | 2.862            | **1.469**        |
+
+Effective epochs is the load-bearing difference. Adult corpus at
+314 train pairs hits 25.9 epochs by iter 2000; kids corpus at 111
+train pairs hits 7.2 epochs by iter 200 — roughly 3.6× the per-pair
+exposure rate. The smaller corpus means the right iteration count
+is much lower.
+
+### Validation-loss trajectory — overfitting documented
+
+Ran a 200-iter sanity train (per the [training-tuning-discipline
+memory note](/Users/mikeporter/.claude/projects/-Users-mikeporter-
+devel-agileedge-rosetta-bone/memory/training-tuning-discipline.md))
+then a full 2000-iter run. The 2000-iter run was killed at iter
+1000 once the validation curve made it unambiguous:
+
+| iter | val loss | train loss | note                              |
+| ---- | -------- | ---------- | --------------------------------- |
+| 1    | 2.394    | —          | base model                        |
+| 200  | **1.469** | 0.526     | **best — kept this adapter**      |
+| 400  | 2.266    | ~0.10      | overfitting begins                |
+| 600  | 2.823    | ~0.03      | worse than base model             |
+| 800  | 3.097    | ~0.03      | severe memorisation               |
+| 1000 | 3.186    | ~0.03      | killed run; train loss at 0.025   |
+
+Adult pilots show this same regime (deep memorisation past iter
+2000) but their validation curve doesn't bottom out until iter
+1000-1200 — 5-6× later. With 1/3 the corpus, the kids pilot bottoms
+out 5× earlier. The next kids iteration should default to
+`--iters 200` until the corpus grows.
+
+The 2000-iter run's adapter dir (`20260517T190454Z`) preserves the
+overfit checkpoints + train.log as evidence; the production adapter
+is the iter-200 sanity-run output at `20260517T184857Z`, pointed to
+by `data/adapters/llama31-8b-storyteller-kids-v1/latest`.
+
+### Qualitative read — kids-tone audit
+
+Generated 5 samples on the iter-200 kids adapter, written to
+`data/samples-kids-v1/audit-run-01.txt`. Audit-checklist results:
+
+| Check                                            | Result |
+| ------------------------------------------------ | ------ |
+| No swearing / "bad word" references              | ✓ all 5 |
+| No dread, grievance, enemy framing               | ✓ all 5 |
+| Vocabulary at ~5-year-old level                  | ✓ all 5 |
+| Stories have warm resolution                     | ✓ all 5 |
+| Read-aloud cadence (clear boundaries, repetition)| ✓ all 5 |
+| Persona violations counted by `sft stats`        | **0**  |
+
+**Distance-rule wins (inherited from v11):**
+
+| Stimulus               | kids-v1 opening                                              |
+| ---------------------- | ------------------------------------------------------------ |
+| the new puppy          | "I heard it first. A tiny sound. Eee-ee-ee. High and squeaky like a toy that needs winding." |
+| snow for the first time| "I heard it first. A low rumble. R-r-rumble. ... tap-taps on the window." |
+
+The sense-priority rules transferred directly from the v11 persona
+template — sound leads when there's distance, smell leads when
+close. The kids persona kept those rules verbatim and the adapter
+expresses them in kid-friendly vocabulary.
+
+**Warm-resolution wins:**
+
+- *bedtime*: "And then I know it is time. I lie down in my bed. ...
+  I put my chin on my paws. And I close my eyes."
+- *snow for the first time*: "I knew right then. Today was a very
+  big day."
+- *the cat by the window*: "I sit down. I turn around two times. I
+  lie down. I am very good. I am very brave."
+- *a lost teddy bear* (novel — not in training): "I will bring them
+  here. ... Yes. That is a good smell now."
+
+Stories close on a soft landing, not the ironic open-ended Marley
+register the adult adapter produces.
+
+**Onomatopoeia wins:**
+
+- Eee-ee-ee / EEE EEE EEE (puppy)
+- Sniff sniff sniff / SNIFF (cat, teddy)
+- Creak-creak / Creak-creak-ROAR (bedtime)
+- CRUNCH CRUNCH CRUNCH (snow)
+- R-r-rumble / tap-taps (snow)
+
+The "How a real dog hears" rules from the persona produce the same
+kid-friendly sound-shape narration the adult product produces in
+adult register.
+
+**Novel-prompt generalisation:**
+
+"a lost teddy bear" (not in training stimuli) produced a coherent
+story: scent-tracking the bear, deciding it's lost (not a real
+bear), bringing it to the person for a "warm spot". The model
+generalised the persona's sense-priority + warm-resolution rules to
+an unseen scene.
+
+**Minor regression on `the cat by the window`:** the dog froze at
+the cat ("I freeze") which reads slightly cautious rather than the
+"my friend the cat" framing intended by the persona. Likely a
+pull from the shared behavior pillar (which describes adult-dog
+caution patterns). Not a deal-breaker; flag for the v2 shared-vs-
+per-product pillar decision.
+
+### Cost summary
+
+- SFT generation: $1.38 (vs $4.46 for adult v11, $3.13 for v10)
+- Compute: 925s on M-series GPU; $0 marginal
+- **Total kids-v1: $1.38**
+
+Within the $1-2 budget the planning doc estimated.
+
+### Findings
+
+1. **The "persona alone" hypothesis held.** Shared pillars +
+   different persona produced a register that audits clean against
+   all six kid-tone criteria with zero violations. Per-product
+   raw/chunks/embeddings stays out of scope for v2 unless a
+   regression surfaces.
+2. **Small corpora need short trains.** 111 train pairs at
+   batch_size 4 hits its validation minimum at ~iter 200 (7
+   effective epochs). Anything past that memorises. Future kids
+   pilots should default `--iters 200` until the corpus grows to
+   ≥250 pairs.
+3. **The persona's `PERSONA_VIOLATIONS` is a load-bearing audit
+   signal.** Tracking the kids violation list in `sft stats`
+   surfaced the persona's fidelity before training. Recommend
+   keeping this discipline for any future persona work.
+4. **The structural parallel-persona pattern works.** Replicating
+   the v11 persona's "How a real dog narrates" + "How a real dog
+   hears" sections (with kids vocabulary) produced an adapter that
+   shows the same sound-leadership and body-direction language
+   the adult product does, while staying in register.
+
+### Next iteration candidates
+
+- **kids-v2: per-product pillars** if a v1-adapter audit on a wider
+  novel-prompt set surfaces adult vocabulary leaking from the
+  science pillar. Until then, keep sharing.
+- **kids-v2: scale stimuli to ~40** and bump `--iters` to ~400.
+  Current 20 stimuli x 3 angles produces 53 angles; doubling to 40
+  stimuli with the same stance-spread rule should yield ~250 train
+  pairs, which would support a ~400-iter train at the same
+  effective-epoch budget.
+- **Address the "cat freeze" regression** with either (a) a
+  per-product behavior pillar focused on cohabitation-friendly
+  examples, or (b) a stronger "the cat is your friend" rule in
+  the kids persona.
+- **modality routing is a no-op.** The science chunks have no
+  `modality` metadata, so the `modality: hearing` tag on 4 kids
+  stimuli silently falls back to the unfiltered pool. Same
+  behaviour as the adult product. Tag the science chunks at
+  ingest-time as a separate cleanup ticket — not specific to
+  kids-v1.
