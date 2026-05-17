@@ -30,3 +30,6 @@ temperature = 0.85
 top_p = 0.95
 max_tokens = 600
 repetition_penalty = 1.05
+
+[persona]
+module = "rosetta_bone.storyteller.sft.persona"
