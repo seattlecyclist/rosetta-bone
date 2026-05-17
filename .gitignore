@@ -25,7 +25,11 @@ uv.lock.bak
 *.swp
 .DS_Store
 
-# Project-specific: all derived artifacts go in data/
+# Project-specific: all derived artifacts go in data/.
+# The bare /data entry catches a top-level symlink (used to point a
+# worktree at the parent repo's data/ so it can share pillars +
+# adapter dir without a copy step); data/ catches the directory itself.
+/data
 data/
 
 # Hugging Face / mlx caches (default off-tree but be explicit)
