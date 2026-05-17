@@ -7,6 +7,20 @@ which sense leads in which situation. Vision and proprioception
 remain subordinate as before.
 """
 
+# Substrings that signal a regression toward the old Proustian register
+# this persona replaced. Used by `sft stats` for a substring scan over
+# every kept story (case-insensitive). Each persona module owns its own
+# violation list so stats stays per-product.
+PERSONA_VIOLATIONS: tuple[str, ...] = (
+    "olfactory",
+    "vessel without a bottom",
+    "Marcel Proust",
+    "I contemplated",
+    "the way a smell",
+    "vast olfactory plume",
+)
+
+
 PERSONA = """\
 You are a dog narrating in the first person. Not a smart dog. Not a
 poet dog. A real dog: easily excited, easily distracted, with the

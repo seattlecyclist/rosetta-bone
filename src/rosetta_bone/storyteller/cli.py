@@ -276,6 +276,7 @@ def sft_stats_cmd(
         train_path=cfg.paths.sft_dir / "train.jsonl",
         valid_path=cfg.paths.sft_dir / "valid.jsonl",
         stimuli_path=stimuli_path,
+        persona_module=cfg.persona.module,
     )
 
     typer.echo(format_stats_table(stats))
